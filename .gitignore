@@ -1,0 +1,31 @@
+# IDE 및 OS 시스템 파일
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# 빌드 및 패키지 파일 (Spring & React)
+/backend/**/build/
+/backend/**/target/
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+
+# Python 및 AI 관련 파일
+/ai/**/__pycache__/
+/ai/**/*.pyc
+/ai/**/.venv/
+/ai/**/venv/
+/ai/**/env/
+
+# 시크릿 키 및 환경변수
+.env
+.env.*
+!.env.example
+application-secret.yml
+application-prod.yml
+
+# 로컬 DB 볼륨 등 인프라 설정
+/infra/mysql_data/
+/infra/chroma_data/
