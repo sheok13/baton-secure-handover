@@ -13,11 +13,11 @@ Thumbs.db
 /frontend/build/
 
 # Python 및 AI 관련 파일
-/ai/**/__pycache__/
-/ai/**/*.pyc
-/ai/**/.venv/
-/ai/**/venv/
-/ai/**/env/
+/ai-module/**/__pycache__/
+/ai-module/**/*.pyc
+/ai-module/**/.venv/
+/ai-module/**/venv/
+/ai-module/**/env/
 
 # 시크릿 키 및 환경변수
 .env
