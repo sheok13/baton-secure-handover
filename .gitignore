@@ -27,5 +27,5 @@ application-secret.yml
 application-prod.yml
 
 # 로컬 DB 볼륨 등 인프라 설정
-/infra/mysql_data/
+/infra/mariadb_data/
 /infra/chroma_data/
