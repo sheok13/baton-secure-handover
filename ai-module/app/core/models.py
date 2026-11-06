@@ -30,6 +30,7 @@ def get_llm() -> BaseChatModel:
             max_retries=1,
             **kwargs,
         )
+    
     from langchain_openai import ChatOpenAI
 
     return ChatOpenAI(
@@ -39,3 +40,16 @@ def get_llm() -> BaseChatModel:
         timeout=s.llm_timeout_seconds,
         max_retries=1,
     )
+
+@lru_cache
+def get_embeddings() -> Embeddings:
+    s = get_settings()
+
+    if s.embedding_provider == "ollama":
+        from langchain_ollama import OllamaEmbeddings
+
+        return OllamaEmbeddings(model=s.embedding_model, base_url=s.ollama_base_url)
+
+    from langchain_openai import OpenAIEmbeddings
+
+    return OpenAIEmbeddings(model=s.embedding_model, api_key=s.openai_api_key)
