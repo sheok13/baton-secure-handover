@@ -13,11 +13,11 @@ Thumbs.db
 /frontend/build/
 
 # Python 및 AI 관련 파일
-/ai/**/__pycache__/
-/ai/**/*.pyc
-/ai/**/.venv/
-/ai/**/venv/
-/ai/**/env/
+/ai-module/**/__pycache__/
+/ai-module/**/*.pyc
+/ai-module/**/.venv/
+/ai-module/**/venv/
+/ai-module/**/env/
 
 # 시크릿 키 및 환경변수
 .env
@@ -27,5 +27,5 @@ application-secret.yml
 application-prod.yml
 
 # 로컬 DB 볼륨 등 인프라 설정
-/infra/mysql_data/
+/infra/mariadb_data/
 /infra/chroma_data/
