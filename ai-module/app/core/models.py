@@ -30,3 +30,4 @@ def get_llm() -> BaseChatModel:
             max_retries=1,
             **kwargs,
         )
+    from langchain_openai import ChatOpenAI
