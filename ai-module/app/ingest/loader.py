@@ -50,3 +50,7 @@ def load_document(data: bytes, filename: str) -> list[Document]:
         if suffix == ".pdf":
             metadata[META_PAGE] = int(d.metadata.get("page", 0)) + 1  # 0부터 → 1부터
         docs.append(Document(page_content=text, metadata=metadata))
+
+    if not docs:
+        raise EmptyTextError(filename)
+    return docs
