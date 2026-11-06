@@ -31,3 +31,11 @@ def get_llm() -> BaseChatModel:
             **kwargs,
         )
     from langchain_openai import ChatOpenAI
+
+    return ChatOpenAI(
+        model=s.llm_model,
+        api_key=s.openai_api_key,
+        streaming=True,
+        timeout=s.llm_timeout_seconds,
+        max_retries=1,
+    )
