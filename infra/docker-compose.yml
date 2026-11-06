@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  database:
+    image: mariadb:11.2
+    container_name: baton-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: baton_db
+      MYSQL_USER: baton_app
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    # ports 미지정: 외부에서 DB 접근 차단
+    restart: unless-stopped
+    networks:
+      - baton-net
+
+  ai-module:
+    build:
+      context: ../ai-module
+    container_name: baton-ai
+    env_file: ../.env
+    # ports 미지정: 백엔드에서만 내부 통신으로 접근
+    restart: unless-stopped
+    networks:
+      - baton-net
+
+  backend:
+    build:
+      context: ../backend
+    container_name: baton-backend
+    env_file: ../.env
+    depends_on:
+      - database
+      - ai-module
+    restart: unless-stopped
+    networks:
+      - baton-net
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: baton-frontend
+    ports:
+      - "80:80"  # 프론트엔드만 외부망 개방
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - baton-net
+
+volumes:
+  db-data:
+
+networks:
+  baton-net:
+    driver: bridge
