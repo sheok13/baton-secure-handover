@@ -1,0 +1,21 @@
+"""요청·응답 모양 (D 소유). JSON 필드 이름은 API 설계서 6장(camelCase)과 같게 쓴다."""
+from pydantic import BaseModel, Field
+
+from app.core.constants import Department, Rank
+
+
+class AccessFilter(BaseModel):
+    """질의 때 Backend가 보내는 권한 필터 (E의 retriever가 사용). 비어 있으면 거부."""
+    departments: list[Department] = Field(min_length=1)
+    ranks: list[Rank] = Field(min_length=1)
+
+
+class IngestResponse(BaseModel):
+    docId: int
+    chunkCount: int
+    maskedCount: int
+
+
+class DeleteResponse(BaseModel):
+    docId: int
+    deletedCount: int
