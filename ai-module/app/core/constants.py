@@ -19,3 +19,4 @@ Rank = Literal["STAFF", "LEADER"]
 
 DEPARTMENTS: tuple[str, ...] = get_args(Department)  # ("SALES", "DEV", "ALL")
 RANKS: tuple[str, ...] = get_args(Rank)              # ("STAFF", "LEADER")
+
