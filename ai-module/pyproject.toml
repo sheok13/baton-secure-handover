@@ -1,0 +1,41 @@
+[project]
+name = "baton-ai-module"
+version = "0.1.0"
+description = "Baton 권한 필터 RAG AI 모듈 (FastAPI + LangChain + Chroma)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # API 서버 (D)
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",        # UploadFile (multipart/form-data) 수신
+    "pydantic-settings",       # 환경변수 → Settings
+
+    # LangChain · RAG (D·E 공용)
+    "langchain-core",          # LCEL
+    "langchain-text-splitters",
+    "langchain-community",     # PyPDFLoader, Docx2txtLoader
+    "langchain-chroma",
+    "chromadb",
+
+    # 모델 공급자 (환경변수로 전환)
+    "langchain-groq",          # 개발 LLM
+    "langchain-ollama",        # 개발 임베딩 bge-m3
+    "langchain-openai",        # 배포 LLM·임베딩
+
+    # 문서 파싱 (D)
+    "pypdf",
+    "docx2txt",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "httpx",                   # FastAPI TestClient
+]
+
+[tool.uv]
+package = false                # 앱 프로젝트: 빌드·배포용 패키지 아님
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
