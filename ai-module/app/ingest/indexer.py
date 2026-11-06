@@ -52,3 +52,10 @@ def index_chunks(
         raise
     return len(tagged)
 
+def delete_document(doc_id: int) -> int:
+    """doc_id의 청크를 모두 지우고 지운 개수를 돌려준다. 없으면 0."""
+    store = get_vectorstore()
+    found = store.get(where={META_DOC_ID: doc_id})
+    if found["ids"]:
+        store.delete(ids=found["ids"])
+    return len(found["ids"])
