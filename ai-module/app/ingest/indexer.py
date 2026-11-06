@@ -42,3 +42,13 @@ def index_chunks(
         }
         tagged.append(Document(page_content=chunk.page_content, metadata=metadata))
         ids.append(f"{doc_id}-{i}")
+
+    # 같은 문서를 다시 올리면 예전 청크를 먼저 지운다 (재시도 안전)
+    delete_document(doc_id)
+    try:
+        get_vectorstore().add_documents(tagged, ids=ids)
+    except Exception:
+        delete_document(doc_id)  # 일부만 저장된 채로 남지 않게 정리
+        raise
+    return len(tagged)
+
