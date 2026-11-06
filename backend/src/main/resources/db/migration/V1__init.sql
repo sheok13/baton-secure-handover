@@ -1,6 +1,6 @@
 -- ==========================================================
 -- V1__init.sql — 바톤(Baton) 초기 스키마 (테이블 5개)
--- 기준: docs/3.데이터베이스설계서.md v0.1
+-- 기준: docs/3.데이터베이스설계서.md v0.3
 -- ⚠️ develop 머지 후에는 이 파일을 수정하지 말 것. 변경은 V3__*.sql로 추가
 -- ==========================================================
 
@@ -53,7 +53,7 @@ CREATE TABLE documents (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_documents_access ON documents (department, min_rank, status);  -- 권한 필터 조회
-CREATE INDEX idx_documents_owner  ON documents (owner_id);                       -- 내 문서·삭제 권한
+CREATE INDEX idx_documents_owner  ON documents (owner_id);                       -- 업로더별 조회
 
 -- ----------------------------------------------------------
 -- 3. chat_sessions (대화)
@@ -61,7 +61,7 @@ CREATE INDEX idx_documents_owner  ON documents (owner_id);                      
 CREATE TABLE chat_sessions (
     id                  BIGINT       NOT NULL AUTO_INCREMENT,
     member_id           BIGINT       NOT NULL,                 -- 소유자 (IDOR 방어: 조회 시 항상 함께 검사)
-    title               VARCHAR(100) NOT NULL,                 -- 첫 질문 앞부분으로 자동 생성
+    title               VARCHAR(100) NOT NULL DEFAULT '새 대화',  -- 생성 시 '새 대화', 첫 질문 저장 시 앞 30자로 갱신
     created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- 메시지 저장 시 갱신, 목록 정렬 기준
     CONSTRAINT pk_chat_sessions PRIMARY KEY (id),
@@ -78,7 +78,7 @@ CREATE TABLE chat_messages (
     session_id          BIGINT       NOT NULL,
     role                VARCHAR(10)  NOT NULL,
     content             TEXT         NOT NULL,                 -- 질문 또는 답변
-    sources             TEXT         NULL,                     -- 재검증된 출처 JSON 문자열 [{"docId":3,"title":"...","page":2}]
+    sources             JSON         NULL,                     -- 재검증된 출처 JSON 문자열 [{"docId":3,"title":"...","page":2}]
     created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_chat_messages PRIMARY KEY (id),
     CONSTRAINT fk_chat_messages_session FOREIGN KEY (session_id)
