@@ -6,6 +6,16 @@ Backend(Spring Boot)만 호출하는 **내부 FastAPI 서버**로, 문서 수집
 - 상세 계약: `docs/7.AI모듈연동명세서.md`
 - 담당: D 박한나(수집·서빙: `app/api`, `app/ingest`, `app/core`) · E 이주혁(검색·생성·AI 보안: `app/rag`, `app/prompts`, `app/guard`)
 
+초반 테스트 코드입니다.
+
+```bash
+cd ai-module
+uv lock && uv sync
+uv run pytest                                          # 3개 통과
+uv run uvicorn app.api.main:app --reload --port 8000   # /health → {"status":"ok"}
+```
+
+
 ## 1. 폴더 구조
 
 ```
