@@ -11,3 +11,13 @@ from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader
 from langchain_core.documents import Document
 
 from app.core.constants import META_PAGE
+
+SUPPORTED_SUFFIXES = (".pdf", ".docx")
+
+
+class UnsupportedFileTypeError(ValueError):
+    """PDF·DOCX가 아닌 파일 → 라우터에서 400으로 응답"""
+
+
+class EmptyTextError(ValueError):
+    """글자를 하나도 못 꺼냄(스캔 PDF 등) → 라우터에서 422 INGEST_EMPTY_TEXT"""
