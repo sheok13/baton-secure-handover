@@ -19,3 +19,6 @@ def _get_splitter() -> RecursiveCharacterTextSplitter:
         separators=["\n\n", "\n", ". ", " ", ""],  # 자르기 좋은 자리 우선순위
         length_function=len,              # 글자 수 기준
     )
+
+def split_documents(docs: list[Document]) -> list[Document]:
+    return _get_splitter().split_documents(docs)
