@@ -24,3 +24,21 @@ def index_chunks(
     min_rank: str,
     chunks: list[Document],
 ) -> int:
+    """청크를 저장하고 저장한 개수를 돌려준다."""
+    # 마지막 방어선: 허용되지 않은 권한 값은 저장하지 않는다
+    if department not in DEPARTMENTS or min_rank not in RANKS:
+        raise ValueError("허용되지 않은 권한 값")
+
+    tagged: list[Document] = []
+    ids: list[str] = []
+    for i, chunk in enumerate(chunks):
+        metadata = {
+            **chunk.metadata,            # loader가 붙인 page (PDF만)
+            META_DOC_ID: doc_id,
+            META_TITLE: title,
+            META_DEPT: department,
+            META_MIN_RANK: min_rank,
+            META_CHUNK_INDEX: i,
+        }
+        tagged.append(Document(page_content=chunk.page_content, metadata=metadata))
+        ids.append(f"{doc_id}-{i}")
