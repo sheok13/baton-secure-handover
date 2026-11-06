@@ -15,3 +15,12 @@ from app.core.constants import (
     RANKS,
 )
 from app.core.vectorstore import get_vectorstore
+
+def index_chunks(
+    *,
+    doc_id: int,
+    title: str,
+    department: str,
+    min_rank: str,
+    chunks: list[Document],
+) -> int:
