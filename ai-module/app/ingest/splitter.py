@@ -9,3 +9,13 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.core.config import get_settings
+
+@lru_cache
+def _get_splitter() -> RecursiveCharacterTextSplitter:
+    s = get_settings()
+    return RecursiveCharacterTextSplitter(
+        chunk_size=s.chunk_size,          # 800
+        chunk_overlap=s.chunk_overlap,    # 150
+        separators=["\n\n", "\n", ". ", " ", ""],  # 자르기 좋은 자리 우선순위
+        length_function=len,              # 글자 수 기준
+    )
