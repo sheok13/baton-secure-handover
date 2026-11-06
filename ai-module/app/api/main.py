@@ -21,7 +21,7 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-# /internal/* 는 전부 내부 API Key 필수
+# /internal/* 는 전부 내부 API Key 필수 
 internal = APIRouter(prefix="/internal", dependencies=[Depends(verify_internal_key)])
 internal.include_router(ingest_router)
 app.include_router(internal)
