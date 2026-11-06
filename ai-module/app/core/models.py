@@ -10,6 +10,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 
 from app.core.config import get_settings
 
+@lru_cache
 def get_llm() -> BaseChatModel:
     s = get_settings()
 
