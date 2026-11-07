@@ -6,7 +6,7 @@ export const users = [
   name: '김영업',                          // '김영업'
   email: 'sales.staff@baton.local',       // 'sales.staff@baton.local'
   password: 'password1',                  // mock 로그인 비교용 임시 값 (실제 값은 팀 시드 문서 확인)
-  dept: DEPT.SALES,                       // DEPT.SALES  ← 문자열 직접 쓰지 말고 상수 사용
+  department: DEPT.SALES,                       // DEPT.SALES  ← 문자열 직접 쓰지 말고 상수 사용
   rank: RANK.STAFF,                       // RANK.STAFF
 }
 ,
