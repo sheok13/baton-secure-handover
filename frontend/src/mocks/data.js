@@ -43,81 +43,91 @@ export const documents = [
   {
   id: 1,                    // 고유 숫자
   title: '사내 복리후생 안내',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-01',       // 작성일 (문서함 '작성일' 열)
-  author: '김영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-01T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '김영업', rank: RANK.STAFF },
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.ALL,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 2,                    // 고유 숫자
   title: '비품 구매 절차',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-02',       // 작성일 (문서함 '작성일' 열)
-  author: '이개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-02T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '이개발', rank: RANK.STAFF },
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.ALL,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 3,                    // 고유 숫자
   title: '거래처 관리 매뉴얼',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-03',       // 작성일 (문서함 '작성일' 열)
-  author: '김영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-03T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '김영업', rank: RANK.STAFF },
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 4,                    // 고유 숫자
   title: '월간 영업보고 작성법',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-04',       // 작성일 (문서함 '작성일' 열)
-  author: '김영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-04T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '김영업', rank: RANK.STAFF },
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 5,                    // 고유 숫자
   title: '거래처 계약 단가표',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-05',       // 작성일 (문서함 '작성일' 열)
-  author: '박영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-05T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '박영업', rank: RANK.LEADER },
   minRank: RANK.LEADER,     // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 6,                    // 고유 숫자
   title: '영업팀 성과평가 기준',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-06',       // 작성일 (문서함 '작성일' 열)
-  author: '박영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-06T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '박영업', rank: RANK.LEADER },
   minRank: RANK.LEADER,     // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 7,                    // 고유 숫자
   title: '개발 환경 세팅 가이드',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-07',       // 작성일 (문서함 '작성일' 열)
-  author: '이개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-07T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '이개발', rank: RANK.STAFF },
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 8,                    // 고유 숫자
   title: '배포 절차서',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-08',       // 작성일 (문서함 '작성일' 열)
-  author: '이개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-08T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '이개발', rank: RANK.STAFF },
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 9,                    // 고유 숫자
   title: '서버 접근권한 관리 정책',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-09',       // 작성일 (문서함 '작성일' 열)
-  author: '최개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-09T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '최개발', rank: RANK.LEADER },
   minRank: RANK.LEADER,     // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 10,                   // 고유 숫자
   title: '외주 개발 계약 현황',           // 문서명 (문서함 '문서명' 열)
-  createdAt: '2026-10-10',       // 작성일 (문서함 '작성일' 열)
-  author: '최개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
+  createdAt: '2026-10-10T10:00:00+09:00',       // 작성일 (문서함 '작성일' 열)
+  author: { name: '최개발', rank: RANK.LEADER },
   minRank: RANK.LEADER,     // RANK.STAFF 또는 RANK.LEADER (직급 열)
+  status: 'READY',
   department: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
 }
 ]
