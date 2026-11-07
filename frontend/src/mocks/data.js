@@ -15,7 +15,7 @@ export const users = [
   name: '박영업',                          // '박영업'
   email: 'sales.lead@baton.local',        // 'sales.lead@baton.local'
   password: 'password1',                  // mock 로그인 비교용 임시 값 (실제 값은 팀 시드 문서 확인)
-  dept: DEPT.SALES,                       // DEPT.SALES  ← 문자열 직접 쓰지 말고 상수 사용
+  department: DEPT.SALES,                       // DEPT.SALES  ← 문자열 직접 쓰지 말고 상수 사용
   rank: RANK.LEADER,                      // RANK.LEADER
 }
 ,
@@ -24,7 +24,7 @@ export const users = [
   name: '이개발',                          // '이개발'
   email: 'dev.staff@baton.local',         // 'dev.staff@baton.local'
   password: 'password1',                  // mock 로그인 비교용 임시 값 (실제 값은 팀 시드 문서 확인)
-  dept: DEPT.DEV,                         // DEPT.DEV  ← 문자열 직접 쓰지 말고 상수 사용
+  department: DEPT.DEV,                         // DEPT.DEV  ← 문자열 직접 쓰지 말고 상수 사용
   rank: RANK.STAFF,                       // RANK.STAFF
 }
 ,
@@ -33,7 +33,7 @@ export const users = [
   name: '최개발',                          // '최개발'
   email: 'dev.lead@baton.local',          // 'dev.lead@baton.local'
   password: 'password1',                  // mock 로그인 비교용 임시 값 (실제 값은 팀 시드 문서 확인)
-  dept: DEPT.DEV,                         // DEPT.DEV  ← 문자열 직접 쓰지 말고 상수 사용
+  department: DEPT.DEV,                         // DEPT.DEV  ← 문자열 직접 쓰지 말고 상수 사용
   rank: RANK.LEADER,                      // RANK.LEADER
 }
 
@@ -46,7 +46,7 @@ export const documents = [
   createdAt: '2026-10-01',       // 작성일 (문서함 '작성일' 열)
   author: '김영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.ALL,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.ALL,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 2,                    // 고유 숫자
@@ -54,7 +54,7 @@ export const documents = [
   createdAt: '2026-10-02',       // 작성일 (문서함 '작성일' 열)
   author: '이개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.ALL,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.ALL,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 3,                    // 고유 숫자
@@ -62,7 +62,7 @@ export const documents = [
   createdAt: '2026-10-03',       // 작성일 (문서함 '작성일' 열)
   author: '김영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 4,                    // 고유 숫자
@@ -70,7 +70,7 @@ export const documents = [
   createdAt: '2026-10-04',       // 작성일 (문서함 '작성일' 열)
   author: '김영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 5,                    // 고유 숫자
@@ -78,7 +78,7 @@ export const documents = [
   createdAt: '2026-10-05',       // 작성일 (문서함 '작성일' 열)
   author: '박영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.LEADER,     // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 6,                    // 고유 숫자
@@ -86,7 +86,7 @@ export const documents = [
   createdAt: '2026-10-06',       // 작성일 (문서함 '작성일' 열)
   author: '박영업',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.LEADER,     // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.SALES,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 7,                    // 고유 숫자
@@ -94,7 +94,7 @@ export const documents = [
   createdAt: '2026-10-07',       // 작성일 (문서함 '작성일' 열)
   author: '이개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 8,                    // 고유 숫자
@@ -102,7 +102,7 @@ export const documents = [
   createdAt: '2026-10-08',       // 작성일 (문서함 '작성일' 열)
   author: '이개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.STAFF,      // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 9,                    // 고유 숫자
@@ -110,7 +110,7 @@ export const documents = [
   createdAt: '2026-10-09',       // 작성일 (문서함 '작성일' 열)
   author: '최개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.LEADER,     // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
 },
   {
   id: 10,                   // 고유 숫자
@@ -118,6 +118,6 @@ export const documents = [
   createdAt: '2026-10-10',       // 작성일 (문서함 '작성일' 열)
   author: '최개발',          // 작성자 이름 (users 중 한 명이면 자연스러움)
   minRank: RANK.LEADER,     // RANK.STAFF 또는 RANK.LEADER (직급 열)
-  dept: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
+  department: DEPT.DEV,         // DEPT.ALL / SALES / DEV  (부서 열)
 }
 ]
