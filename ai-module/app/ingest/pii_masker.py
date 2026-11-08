@@ -8,3 +8,11 @@ import re
 RRN_MASK = "[주민번호]"
 PHONE_MASK = "[연락처]"
 ACCOUNT_MASK = "[계좌번호]"
+
+
+# (?<!\d) / (?!\d): 앞뒤에 숫자가 붙어 있으면 더 긴 숫자의 일부이므로 건드리지 않는다
+_RRN = re.compile(r"(?<!\d)\d{6}-?[1-4]\d{6}(?!\d)")
+_MOBILE = re.compile(r"(?<!\d)01[016789]-?\d{3,4}-?\d{4}(?!\d)")
+_LANDLINE = re.compile(r"(?<!\d)0\d{1,2}-\d{3,4}-\d{4}(?!\d)")
+# 하이픈으로 이어진 숫자 묶음 (예: 999-99-999999). 자릿수 판단은 _mask_account에서
+_DIGIT_GROUPS = re.compile(r"(?<![\d-])\d{2,6}(?:-\d{2,6}){1,3}(?![\d-])")
