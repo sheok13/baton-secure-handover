@@ -6,6 +6,19 @@ from app.core.constants import Department, Rank
 class HistoryMessage(BaseModel):
     role: Literal["USER", "ASSISTANT"]
     content: str = Field(max_length=4000)
+
+class ChatRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=1000)
+    filter: AccessFilter
+    history: list[HistoryMessage] = Field(default_factory=list)
+
+    @field_validator("question")
+    @classmethod
+    def _strip_question(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("빈 질문")
+        return v
     
 class AccessFilter(BaseModel):
     """질의 때 Backend가 보내는 권한 필터 (E의 retriever가 사용). 비어 있으면 거부."""
