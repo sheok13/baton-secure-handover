@@ -3,6 +3,12 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Literal
 from app.core.constants import Department, Rank
 
+
+class AccessFilter(BaseModel):
+    """질의 때 Backend가 보내는 권한 필터 (E의 retriever가 사용). 비어 있으면 거부."""
+    departments: list[Department] = Field(min_length=1)
+    ranks: list[Rank] = Field(min_length=1)
+    
 class HistoryMessage(BaseModel):
     role: Literal["USER", "ASSISTANT"]
     content: str = Field(max_length=4000)
@@ -20,10 +26,6 @@ class ChatRequest(BaseModel):
             raise ValueError("빈 질문")
         return v
     
-class AccessFilter(BaseModel):
-    """질의 때 Backend가 보내는 권한 필터 (E의 retriever가 사용). 비어 있으면 거부."""
-    departments: list[Department] = Field(min_length=1)
-    ranks: list[Rank] = Field(min_length=1)
 
 
 class IngestResponse(BaseModel):
