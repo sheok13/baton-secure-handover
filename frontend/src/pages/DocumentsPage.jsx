@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { downloadDocument, listDocuments } from '../services/documentApi.js'
 import { useToastStore } from '../stores/toastStore.js'
 import DocumentTable from '../components/DocumentTable.jsx'
+import UploadModal from '../components/UploadModal.jsx'
 
 export default function DocumentsPage() {
   const [keyword, setKeyword] = useState('')
@@ -10,6 +11,7 @@ export default function DocumentsPage() {
   const [data, setData] = useState({ content: [], totalPages: 0 })
   const [loading, setLoading] = useState(true)
   const [reloadKey, setReloadKey] = useState(0)
+  const [uploadOpen, setUploadOpen] = useState(false)
   const show = useToastStore((s) => s.show)
 
   useEffect(() => {
@@ -44,7 +46,16 @@ export default function DocumentsPage() {
 
   return (
     <div className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-4 text-xl font-bold">문서함</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-xl font-bold">문서함</h1>
+        <button
+          className="rounded border px-3 py-1"
+          onClick={() => setUploadOpen(true)}
+        >
+          문서 올리기
+        </button>
+      </div>
+
       <form onSubmit={handleSearch} className="mb-4 flex gap-2">
         <input
           className="flex-1 rounded border p-2"
@@ -77,6 +88,13 @@ export default function DocumentsPage() {
           다음
         </button>
       </div>
+
+      {uploadOpen && (
+        <UploadModal
+          onClose={() => setUploadOpen(false)}
+          onUploaded={() => setReloadKey((k) => k + 1)}
+        />
+      )}
     </div>
   )
 }
