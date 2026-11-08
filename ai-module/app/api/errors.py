@@ -30,6 +30,12 @@ def register_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def _validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
+        # 권한 필터가 없거나 잘못됐으면 400 FILTER_INVALID (명세서 4.5, fail-closed)
+        if any("filter" in map(str, err.get("loc", ())) for err in exc.errors()):
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=_body("FILTER_INVALID", "권한 필터가 올바르지 않습니다."),
+            )
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content=_body("VALIDATION_FAILED", "요청 값이 올바르지 않습니다."),
