@@ -10,6 +10,7 @@ from app.core.constants import Department, Rank
 from app.ingest.indexer import delete_document, index_chunks
 from app.ingest.loader import EmptyTextError, UnsupportedFileTypeError, load_document
 from app.ingest.splitter import split_documents
+from app.ingest.pii_masker import mask
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -40,8 +41,11 @@ def ingest(
         logger.exception("문서 파싱 실패 docId=%s", docId)
         raise ApiError(422, "INGEST_EMPTY_TEXT", "문서를 읽을 수 없습니다.")
 
-    # 3) TODO(11/7): 개인정보 마스킹 — 분할 전에 적용하고 masked_count 집계
+    # 3) 개인정보 마스킹 — 분할 전에 적용 (명세서 5.1 ②)
     masked_count = 0
+    for d in docs:
+        d.page_content, n = mask(d.page_content)
+        masked_count += n
 
     # 4) 자르기 → 이름표 붙여 저장
     chunks = split_documents(docs)
