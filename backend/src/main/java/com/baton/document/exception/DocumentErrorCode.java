@@ -10,7 +10,8 @@ public enum DocumentErrorCode implements ErrorCode {
     DOC_FORBIDDEN_SCOPE(HttpStatus.FORBIDDEN, "DOC_FORBIDDEN_SCOPE", "지정할 수 없는 열람 범위입니다."),
     FILE_INVALID_TYPE(HttpStatus.BAD_REQUEST, "FILE_INVALID_TYPE", "PDF 또는 DOCX 파일만 업로드할 수 있습니다."),
     FILE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE", "파일은 10MB 이하만 업로드할 수 있습니다."),
-    INVALID_SORT(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "정렬은 createdAt 또는 title만 사용할 수 있습니다.");
+    INVALID_SORT(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "정렬은 createdAt 또는 title만 사용할 수 있습니다."),
+    INVALID_KEYWORD(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "검색어는 100자 이하로 입력해 주세요.");
 
     private final HttpStatus status;
     private final String code;
