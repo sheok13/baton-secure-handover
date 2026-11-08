@@ -29,3 +29,12 @@ def _mask_account(text: str) -> tuple[str, int]:
         return m.group()
  
     return _DIGIT_GROUPS.sub(repl, text), count
+
+def mask(text: str) -> tuple[str, int]:
+    """(가린 텍스트, 가린 건수)를 돌려준다."""
+    total = 0
+    for pattern, label in ((_RRN, RRN_MASK), (_MOBILE, PHONE_MASK), (_LANDLINE, PHONE_MASK)):
+        text, n = pattern.subn(label, text)
+        total += n
+    text, n = _mask_account(text)
+    return text, total + n
