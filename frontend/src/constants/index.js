@@ -9,5 +9,12 @@ export const DEPT = {
   DEV: "DEV",      // 개발
 }
 
-export const RANK_LABEL = { /* 값 → 화면 표시용 한글 (사원/팀장) */ }
-export const DEPT_LABEL = { /* 값 → 한글 (전체/영업팀/개발팀) */ }
+export const RANK_LABEL = {
+  [RANK.STAFF]: '사원',
+  [RANK.LEADER]: '팀장',
+}
+export const DEPT_LABEL = {
+  [DEPT.ALL]: '전체',
+  [DEPT.SALES]: '영업팀',
+  [DEPT.DEV]: '개발팀',
+}
