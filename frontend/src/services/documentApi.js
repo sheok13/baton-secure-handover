@@ -36,3 +36,23 @@ export async function downloadDocument(id) {
   }
   return request(`/documents/${id}/download`)
 }
+
+export async function uploadDocument({ file, title, department, minRank }) {
+  if (USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 800))
+    const me = useAuthStore.getState().member
+    const newDoc = {
+      id: Date.now(),
+      title: title || file.name.replace(/\.[^.]+$/, ''),
+      createdAt: new Date().toISOString(),
+      author: { name: me.name, rank: me.rank },
+      department,
+      minRank,
+      status: 'READY',
+    }
+    documents.unshift(newDoc)
+    return { id: newDoc.id, status: newDoc.status, chunkCount: 0, maskedCount: 0 }
+  }
+  // TODO: 실 API(multipart/form-data). apiClient가 FormData를 보낼 수 있게 고친 뒤 연결
+  throw { status: 501, code: 'NOT_IMPLEMENTED' }
+}
