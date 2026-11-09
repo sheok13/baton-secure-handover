@@ -28,3 +28,9 @@ client = TestClient(app)
 HEADERS = {"X-Internal-Api-Key": os.environ["AI_INTERNAL_API_KEY"]}
 SALES_STAFF = {"departments": ["SALES", "ALL"], "ranks": ["STAFF"]}
 DOC = Document(page_content="가짜 내용", metadata={"doc_id": 3, "title": "거래처 관리 매뉴얼"})
+
+def ask(question="거래처 등록 주의점?", flt=SALES_STAFF, headers=HEADERS):
+    body = {"question": question, "history": []}
+    if flt is not None:
+        body["filter"] = flt
+    return client.post("/internal/chat", json=body, headers=headers)
