@@ -45,3 +45,13 @@ async def _chat_events(req: ChatRequest) -> AsyncIterator[str]:
                 yield e
             return
         docs = [doc for doc, _score in hits]
+
+        # 3) 답변 스트림 + 출력 검사
+        history = req.history[-get_settings().max_history_messages:]
+        answer = ""
+        async for token in stream_answer(req.question, docs, history):
+            answer += token
+            if check_output(answer).blocked:
+                yield sse_event("error", UNAVAILABLE)
+                return
+            yield sse_event("token", {"text": token})
