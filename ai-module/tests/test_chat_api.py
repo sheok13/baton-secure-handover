@@ -93,4 +93,28 @@ def test_normal_flow_token_sources_done(fake_e):
 def test_korean_is_not_escaped(fake_e):
     # ensure_ascii=False: 한글이 \uXXXX 로 바뀌지 않아야 한다
     assert "주의할 점은" in ask().text
+
+ # ── LLM을 부르지 않는 고정 응답 ──
  
+def test_blocked_question_sends_fixed_message(fake_e):
+    fake_e.setattr(routes_chat, "check_question", lambda q: GuardResult(blocked=True, reason="TEST"))
+    fake_e.setattr(routes_chat, "retrieve", lambda q, f: pytest.fail("막힌 질문은 검색하면 안 된다"))
+    assert events(ask()) == [("token", {"text": BLOCKED_MESSAGE}), ("sources", []), ("done", {})]
+ 
+ 
+def test_no_hits_sends_fixed_message_without_llm(fake_e):
+    async def must_not_call(*args):
+        pytest.fail("0건이면 LLM을 부르면 안 된다")
+        yield ""
+ 
+    fake_e.setattr(routes_chat, "retrieve", lambda q, f: [])
+    fake_e.setattr(routes_chat, "stream_answer", must_not_call)
+    assert events(ask()) == [("token", {"text": NO_ANSWER_MESSAGE}), ("sources", []), ("done", {})]
+ 
+ 
+def test_llm_no_answer_has_empty_sources(fake_e):
+    async def no_answer(question, docs, history):
+        yield NO_ANSWER_MESSAGE
+ 
+    fake_e.setattr(routes_chat, "stream_answer", no_answer)
+    assert ("sources", []) in events(ask())
