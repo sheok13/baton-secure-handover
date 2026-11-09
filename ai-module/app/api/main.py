@@ -22,6 +22,7 @@ register_error_handlers(app)
 
 
 @app.get("/health")
+
 def health():
     # 벡터 스토어를 열 수 없으면 503 (명세서 4.4). 모델명·경로 등 내부 정보는 응답에 넣지 않는다.
     try:
