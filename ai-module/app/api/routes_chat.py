@@ -55,3 +55,11 @@ async def _chat_events(req: ChatRequest) -> AsyncIterator[str]:
                 yield sse_event("error", UNAVAILABLE)
                 return
             yield sse_event("token", {"text": token})
+
+            # 4) 출처 → 끝
+        yield sse_event("sources", format_sources(docs))
+        yield sse_event("done", {})
+    except Exception:
+        # 이미 200으로 스트림이 시작됐으므로 HTTP 오류 대신 error 이벤트로 알리고 닫는다
+        logger.exception("채팅 스트림 실패")
+        yield sse_event("error", UNAVAILABLE)
