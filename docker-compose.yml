@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+  frontend:
+    build:
+      context: ./frontend
+  backend:
+    build:
+      context: ./backend
+    env_file: .env
+    depends_on:
+      - mariadb
+      - ai-module
+  ai-module:
+    build:
+      context: ./ai-module
+    env_file: .env
+    volumes:
+      - chroma_data:/app/chroma_db
+  mariadb:
+    image: mariadb:10.11
+    env_file: .env
+volumes:
+  chroma_data:
