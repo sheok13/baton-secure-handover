@@ -34,3 +34,11 @@ def ask(question="거래처 등록 주의점?", flt=SALES_STAFF, headers=HEADERS
     if flt is not None:
         body["filter"] = flt
     return client.post("/internal/chat", json=body, headers=headers)
+
+@pytest.fixture
+def fake_e(monkeypatch):
+    """E 함수 기본값: 질문 통과, 문서 1건 찾음, 답 두 조각, 출력 통과."""
+ 
+    async def answer(question, docs, history):
+        for t in ["주의할 점은 ", "신원 확인입니다."]:
+            yield t
