@@ -1,7 +1,7 @@
 package com.baton.auth.dto;
 
 import com.baton.member.entity.Department;
-import com.baton.member.entity.JobRank;
+import com.baton.member.entity.Rank;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,9 +19,9 @@ public class MemberInfoResponse {
     private Department department;
 
     @JsonProperty("rank")
-    private JobRank rank;
+    private Rank rank;
 
-    public static MemberInfoResponse of(String name, Department department, JobRank rank) {
+    public static MemberInfoResponse of(String name, Department department, Rank rank) {
         return MemberInfoResponse.builder()
                 .name(name)
                 .department(department)
@@ -29,4 +29,3 @@ public class MemberInfoResponse {
                 .build();
     }
 }
-

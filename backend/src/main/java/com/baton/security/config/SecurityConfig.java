@@ -1,7 +1,8 @@
 package com.baton.security.config;
 
-import com.baton.common.dto.ApiResponse;
-import com.baton.common.exception.ErrorCode;
+import com.baton.auth.exception.AuthErrorCode;
+import com.baton.common.ApiResponse;
+import com.baton.common.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,9 +14,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -30,7 +33,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,6 +47,7 @@ import java.util.List;
 @Slf4j
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -66,7 +69,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // REST API 서버이므로 CSRF 비활성화 (Refresh 토큰은 SameSite=Strict + POST 로 별도 방어)
+                // REST API 서버이므로 CSRF 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
 
                 // 세션을 생성하거나 사용하지 않음 (STATELESS)
@@ -146,7 +149,6 @@ public class SecurityConfig {
 
     /**
      * 인증 실패 (401 Unauthorized) 핸들러
-     * 토큰이 없거나 유효하지 않은 경우
      */
     private AuthenticationEntryPoint authenticationEntryPoint() {
         return (request, response, authException) -> {
@@ -157,14 +159,13 @@ public class SecurityConfig {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
 
-            ApiResponse<Void> errorResponse = ApiResponse.error(ErrorCode.AUTH_TOKEN_INVALID);
+            ApiResponse<Void> errorResponse = ApiResponse.error(AuthErrorCode.AUTH_TOKEN_INVALID);
             response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
         };
     }
 
     /**
      * 접근 거부 (403 Forbidden) 핸들러
-     * 인증은 되었으나 리소스에 대한 인가 권한이 부족한 경우
      */
     private AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
@@ -175,13 +176,22 @@ public class SecurityConfig {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
 
-            ApiResponse<Void> errorResponse = ApiResponse.error(ErrorCode.DOC_FORBIDDEN_SCOPE);
+            ErrorCode forbiddenError = new ErrorCode() {
+                @Override
+                public HttpStatus getStatus() { return HttpStatus.FORBIDDEN; }
+                @Override
+                public String getCode() { return "FORBIDDEN"; }
+                @Override
+                public String getMessage() { return "접근 권한이 없습니다."; }
+            };
+
+            ApiResponse<Void> errorResponse = ApiResponse.error(forbiddenError);
             response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
         };
     }
 
     /**
-     * 프록시 환경(Nginx 등)을 고려한 클라이언트 IP 추출
+     * 클라이언트 IP 추출 (프록시 X-Forwarded-For 지원)
      */
     private String getClientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
@@ -191,4 +201,3 @@ public class SecurityConfig {
         return request.getRemoteAddr();
     }
 }
-

@@ -1,6 +1,6 @@
 package com.baton.member.entity;
 
-public enum JobRank {
+public enum Rank {
     STAFF,
     LEADER
 }

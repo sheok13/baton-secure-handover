@@ -1,6 +1,7 @@
 package com.baton.common.dto;
 
-import com.baton.common.exception.ErrorCode;
+import com.baton.auth.exception.AuthErrorCode;
+import com.baton.common.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AccessLevel;
@@ -27,14 +28,14 @@ public class ErrorDetail {
 
     public static ErrorDetail of(ErrorCode errorCode) {
         return ErrorDetail.builder()
-                .code(errorCode.name())
+                .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .build();
     }
 
     public static ErrorDetail of(ErrorCode errorCode, String customMessage) {
         return ErrorDetail.builder()
-                .code(errorCode.name())
+                .code(errorCode.getCode())
                 .message(customMessage != null ? customMessage : errorCode.getMessage())
                 .build();
     }
@@ -48,18 +49,17 @@ public class ErrorDetail {
 
     public static ErrorDetail loginFailure(int remainingAttempts) {
         return ErrorDetail.builder()
-                .code(ErrorCode.AUTH_INVALID_CREDENTIALS.name())
-                .message(ErrorCode.AUTH_INVALID_CREDENTIALS.getMessage())
+                .code(AuthErrorCode.AUTH_INVALID_CREDENTIALS.getCode())
+                .message(AuthErrorCode.AUTH_INVALID_CREDENTIALS.getMessage())
                 .remainingAttempts(remainingAttempts)
                 .build();
     }
 
     public static ErrorDetail accountLocked(OffsetDateTime lockedUntil) {
         return ErrorDetail.builder()
-                .code(ErrorCode.AUTH_LOCKED.name())
-                .message(ErrorCode.AUTH_LOCKED.getMessage())
+                .code(AuthErrorCode.AUTH_LOCKED.getCode())
+                .message(AuthErrorCode.AUTH_LOCKED.getMessage())
                 .lockedUntil(lockedUntil)
                 .build();
     }
 }
-

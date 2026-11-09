@@ -1,4 +1,4 @@
-package com.baton.common.exception;
+package com.baton.common;
 
 import lombok.Getter;
 
