@@ -1,17 +1,19 @@
-version: '3.8'
-
 services:
   database:
     image: mariadb:11.2
     container_name: baton-db
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: baton_db
-      MYSQL_USER: baton_app
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: baton_db
+      MARIADB_USER: baton_app
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
     volumes:
       - db-data:/var/lib/mysql
-    # ports 미지정: 외부에서 DB 접근 차단
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
     networks:
       - baton-net
@@ -19,9 +21,13 @@ services:
   ai-module:
     build:
       context: ../ai-module
+    image: ${DOCKERHUB_USERNAME}/baton-ai:${IMAGE_TAG:-latest}
     container_name: baton-ai
     env_file: ../.env
-    # ports 미지정: 백엔드에서만 내부 통신으로 접근
+    expose:
+      - "8000"
+    volumes:
+      - chroma_data:/data/chroma
     restart: unless-stopped
     networks:
       - baton-net
@@ -29,11 +35,19 @@ services:
   backend:
     build:
       context: ../backend
+    image: ${DOCKERHUB_USERNAME}/baton-backend:${IMAGE_TAG:-latest}
     container_name: baton-backend
     env_file: ../.env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://database:3306/baton_db
+      AI_BASE_URL: http://ai-module:8000
+    expose:
+      - "8080"
     depends_on:
-      - database
-      - ai-module
+      database:
+        condition: service_healthy
+      ai-module:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - baton-net
@@ -41,17 +55,20 @@ services:
   frontend:
     build:
       context: ../frontend
+    image: ${DOCKERHUB_USERNAME}/baton-frontend:${IMAGE_TAG:-latest}
     container_name: baton-frontend
     ports:
-      - "80:80"  # 프론트엔드만 외부망 개방
+      - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - baton-net
 
 volumes:
   db-data:
+  chroma_data:
 
 networks:
   baton-net:
