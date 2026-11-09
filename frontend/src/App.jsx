@@ -42,10 +42,7 @@ export default function App() {
           }
         >
           <Route path="/documents" element={<DocumentsPage />} />
-<<<<<<< HEAD
-=======
           <Route path="/chat" element={<ChatPage />} />
->>>>>>> 687640e1b911b6a0d7b7148dc0d99e3ac415dffd
         </Route>
         <Route path="*" element={<Navigate to="/documents" replace />} />
       </Routes>
