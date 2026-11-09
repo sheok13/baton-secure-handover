@@ -107,6 +107,31 @@ public class AuthService {
     }
 
     /**
+     * 토큰 재발급 (POST /api/auth/refresh)
+     * Refresh Token 쿠키를 읽어 새 Access Token 및 새 Refresh Token 발급 (Rotation)
+     */
+    @Transactional
+    public LoginResult reissue(String rawRefreshToken) {
+        if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
+            throw new com.baton.common.BusinessException(com.baton.auth.exception.AuthErrorCode.AUTH_REFRESH_INVALID);
+        }
+
+        String newRefreshToken = jwtProvider.createRefreshToken();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime newExpiresAt = now.plusSeconds(jwtProvider.getRefreshExpirationMs() / 1000);
+
+        Member member = refreshTokenService.validateAndRotate(rawRefreshToken, newRefreshToken, newExpiresAt);
+
+        String newAccessToken = jwtProvider.createAccessToken(member.getUuid());
+        long expiresIn = jwtProvider.getAccessExpirationSeconds();
+
+        MemberInfoResponse memberInfo = MemberInfoResponse.of(member.getName(), member.getDepartment(), member.getJobRank());
+        LoginResponse response = LoginResponse.of(newAccessToken, expiresIn, memberInfo);
+
+        return new LoginResult(response, newRefreshToken);
+    }
+
+    /**
      * 내 정보 조회 (GET /api/auth/me)
      */
     public MemberInfoResponse getMe(String uuid) {
