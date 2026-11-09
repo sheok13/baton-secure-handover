@@ -25,4 +25,5 @@ def health() -> dict:
 # /internal/* 는 전부 내부 API Key 필수 
 internal = APIRouter(prefix="/internal", dependencies=[Depends(verify_internal_key)])
 internal.include_router(ingest_router)
+internal.include_router(chat_router)
 app.include_router(internal)
