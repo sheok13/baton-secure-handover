@@ -19,3 +19,6 @@ from app.guard.output_check import check_output
 from app.prompts.system_prompt import BLOCKED_MESSAGE, NO_ANSWER_MESSAGE
 from app.rag.chain import stream_answer
 from app.rag.retriever import format_sources, retrieve
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
