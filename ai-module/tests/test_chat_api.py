@@ -73,4 +73,24 @@ def test_rejects_blank_question():
     res = ask(question="   ")
     assert res.status_code == 422
     assert res.json()["error"]["code"] == "VALIDATION_FAILED"
+
+# ── 스트림 정상 흐름 ──
+ 
+def test_normal_flow_token_sources_done(fake_e):
+    res = ask()
+    assert res.status_code == 200
+    assert res.headers["content-type"].startswith("text/event-stream")
+    assert res.headers["cache-control"] == "no-cache"
+    assert res.headers["x-accel-buffering"] == "no"
+    assert events(res) == [
+        ("token", {"text": "주의할 점은 "}),
+        ("token", {"text": "신원 확인입니다."}),
+        ("sources", [{"docId": 3, "title": "거래처 관리 매뉴얼", "page": None}]),
+        ("done", {}),
+    ]
+ 
+ 
+def test_korean_is_not_escaped(fake_e):
+    # ensure_ascii=False: 한글이 \uXXXX 로 바뀌지 않아야 한다
+    assert "주의할 점은" in ask().text
  
