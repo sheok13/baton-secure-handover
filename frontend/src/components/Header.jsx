@@ -3,6 +3,7 @@ import { logout } from '../services/authApi.js'
 import { useAuthStore } from '../stores/authStore.js'
 import { DEPT_LABEL, RANK_LABEL } from '../constants/index.js'
 
+
 const navClass = ({ isActive }) =>
   isActive ? 'font-bold text-white' : 'text-gray-400 hover:text-white'
 
