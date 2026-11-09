@@ -37,3 +37,11 @@ async def _chat_events(req: ChatRequest) -> AsyncIterator[str]:
             for e in _fixed_answer(BLOCKED_MESSAGE):
                 yield e
             return
+
+     # 2) 권한 필터 검색 (Chroma·임베딩은 기다리는 작업이라 별도 작업자에서 실행)
+        hits = await run_in_threadpool(retrieve, req.question, req.filter)
+        if not hits:
+            for e in _fixed_answer(NO_ANSWER_MESSAGE):  # LLM 미호출
+                yield e
+            return
+        docs = [doc for doc, _score in hits]
