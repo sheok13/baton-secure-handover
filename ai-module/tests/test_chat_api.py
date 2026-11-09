@@ -35,6 +35,15 @@ def ask(question="거래처 등록 주의점?", flt=SALES_STAFF, headers=HEADERS
         body["filter"] = flt
     return client.post("/internal/chat", json=body, headers=headers)
 
+
+def events(res) -> list[tuple[str, object]]:
+    """SSE 응답 본문을 [(이벤트 이름, data), ...] 로 바꾼다."""
+    out = []
+    for block in res.text.strip().split("\n\n"):
+        lines = dict(line.split(": ", 1) for line in block.splitlines())
+        out.append((lines["event"], json.loads(lines["data"])))
+    return out
+
 @pytest.fixture
 def fake_e(monkeypatch):
     """E 함수 기본값: 질문 통과, 문서 1건 찾음, 답 두 조각, 출력 통과."""
