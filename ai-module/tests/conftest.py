@@ -71,3 +71,12 @@ def build_docx(paragraphs: list[str]) -> bytes:
         z.writestr("_rels/.rels", rels)
         z.writestr("word/document.xml", document)
     return buf.getvalue()
+
+@pytest.fixture
+def make_pdf():
+    return build_pdf
+ 
+ 
+@pytest.fixture
+def make_docx():
+    return build_docx
