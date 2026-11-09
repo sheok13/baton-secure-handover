@@ -56,8 +56,9 @@ async def _chat_events(req: ChatRequest) -> AsyncIterator[str]:
                 return
             yield sse_event("token", {"text": token})
 
-            # 4) 출처 → 끝
-        yield sse_event("sources", format_sources(docs))
+        # 4) 출처 → 끝 (AI가 '찾을 수 없다'고만 답했으면 출처를 붙이지 않는다, 명세서 4.2)
+        sources = [] if answer.strip() == NO_ANSWER_MESSAGE else format_sources(docs)
+        yield sse_event("sources", sources)
         yield sse_event("done", {})
     except Exception:
         # 이미 200으로 스트림이 시작됐으므로 HTTP 오류 대신 error 이벤트로 알리고 닫는다
