@@ -46,16 +46,13 @@ public class JwtProvider {
     @PostConstruct
     public void init() {
         if (secretKeyString == null || secretKeyString.isBlank()) {
-            log.warn("jwt.secret 설정이 비어 있습니다. 테스트용 기본 키를 사용합니다.");
-            // 최소 256비트(32바이트) 이상의 기본 키
-            this.key = Keys.hmacShaKeyFor("default-baton-jwt-secret-key-must-be-longer-than-32bytes".getBytes(StandardCharsets.UTF_8));
-        } else {
-            byte[] keyBytes = secretKeyString.getBytes(StandardCharsets.UTF_8);
-            if (keyBytes.length < 32) {
-                throw new IllegalArgumentException("jwt.secret 은 최소 32바이트(256비트) 이상이어야 합니다.");
-            }
-            this.key = Keys.hmacShaKeyFor(keyBytes);
+            throw new IllegalArgumentException("jwt.secret (JWT_SECRET_KEY) 환경변수가 설정되지 않았습니다.");
         }
+        byte[] keyBytes = secretKeyString.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            throw new IllegalArgumentException("jwt.secret (JWT_SECRET_KEY)은 최소 32바이트(256비트) 이상이어야 합니다. 현재: " + keyBytes.length + "바이트");
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     /**
