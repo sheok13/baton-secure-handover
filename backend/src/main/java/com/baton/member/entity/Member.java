@@ -1,5 +1,6 @@
 package com.baton.member.entity;
 
+import com.baton.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +15,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,7 +27,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Member {
+public class Member extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,12 +46,14 @@ public class Member {
     private String name;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "department", nullable = false, length = 10)
     private Department department;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "job_rank", nullable = false, length = 10)
-    private JobRank jobRank;
+    private Rank jobRank;
 
     @Builder.Default
     @Column(name = "failed_login_count", nullable = false)
@@ -57,16 +62,10 @@ public class Member {
     @Column(name = "locked_until")
     private LocalDateTime lockedUntil;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
     @PrePersist
-    public void prePersist() {
+    public void initMember() {
         if (this.uuid == null) {
             this.uuid = UUID.randomUUID().toString();
-        }
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
         }
     }
 
@@ -82,7 +81,6 @@ public class Member {
      * @return 남은 시도 가능 횟수 (0이면 잠금 처리됨)
      */
     public int recordLoginFailure(int maxAttempts, int lockDurationMinutes, LocalDateTime now) {
-        // 이미 만료된 잠금 시간은 초기화 후 시작
         if (this.lockedUntil != null && !now.isBefore(this.lockedUntil)) {
             this.failedLoginCount = 0;
             this.lockedUntil = null;
@@ -106,4 +104,3 @@ public class Member {
         this.lockedUntil = null;
     }
 }
-

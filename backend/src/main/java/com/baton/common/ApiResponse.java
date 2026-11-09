@@ -1,6 +1,6 @@
-package com.baton.common.dto;
+package com.baton.common;
 
-import com.baton.common.exception.ErrorCode;
+import com.baton.common.dto.ErrorDetail;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
