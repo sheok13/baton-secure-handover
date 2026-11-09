@@ -63,3 +63,7 @@ async def _chat_events(req: ChatRequest) -> AsyncIterator[str]:
         # 이미 200으로 스트림이 시작됐으므로 HTTP 오류 대신 error 이벤트로 알리고 닫는다
         logger.exception("채팅 스트림 실패")
         yield sse_event("error", UNAVAILABLE)
+
+@router.post("/chat")
+async def chat(req: ChatRequest) -> StreamingResponse:
+    return StreamingResponse(_chat_events(req), media_type="text/event-stream", headers=SSE_HEADERS)
