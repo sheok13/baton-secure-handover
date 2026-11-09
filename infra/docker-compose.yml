@@ -28,6 +28,11 @@ services:
       - "8000"
     volumes:
       - chroma_data:/data/chroma
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
     networks:
       - baton-net
@@ -40,6 +45,8 @@ services:
     env_file: ../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:mariadb://database:3306/baton_db
+      SPRING_DATASOURCE_USERNAME: ${MARIADB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MARIADB_PASSWORD}
       AI_BASE_URL: http://ai-module:8000
     expose:
       - "8080"

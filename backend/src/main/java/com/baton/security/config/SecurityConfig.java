@@ -28,7 +28,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import com.baton.security.jwt.JwtAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -52,6 +54,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final ObjectMapper objectMapper;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Value("${cors.allowed-origins:http://localhost:5173}")
     private String allowedOrigins;
@@ -113,7 +116,10 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authenticationEntryPoint())
                         .accessDeniedHandler(accessDeniedHandler())
-                );
+                )
+
+                // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 앞에 배치
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
