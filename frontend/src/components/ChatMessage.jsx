@@ -8,8 +8,8 @@ export default function ChatMessage({ message }) {
         <p className="whitespace-pre-wrap">{message.content}</p>
         {message.sources?.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
-            {message.sources.map((s) => (
-              <SourceChip key={s.documentId} source={s} />
+            {message.sources.map((s, i) => (
+              <SourceChip key={`${s.docId}-${s.page ?? 'na'}-${i}`} source={s} />
             ))}
           </div>
         )}

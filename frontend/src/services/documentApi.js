@@ -53,6 +53,11 @@ export async function uploadDocument({ file, title, department, minRank }) {
     documents.unshift(newDoc)
     return { id: newDoc.id, status: newDoc.status, chunkCount: 0, maskedCount: 0 }
   }
-  // TODO: 실 API(multipart/form-data). apiClient가 FormData를 보낼 수 있게 고친 뒤 연결
-  throw { status: 501, code: 'NOT_IMPLEMENTED' }
+  const form = new FormData()
+  form.append('file', file)
+  form.append('department', department)
+  form.append('minRank', minRank)
+  if (title) form.append('title', title)
+  const res = await request('/documents', { method: 'POST', body: form })
+  return res.data
 }
