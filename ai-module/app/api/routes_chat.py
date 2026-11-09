@@ -29,3 +29,11 @@ UNAVAILABLE = {"code": "AI_UNAVAILABLE", "message": "잠시 후 다시 시도해
 def _fixed_answer(text: str) -> list[str]:
     """LLM 없이 보내는 고정 응답: token 1건 + 빈 sources + done"""
     return [sse_event("token", {"text": text}), sse_event("sources", []), sse_event("done", {})]
+
+async def _chat_events(req: ChatRequest) -> AsyncIterator[str]:
+    try:
+        # 1) 질문 단계 Injection 검사
+        if check_question(req.question).blocked:
+            for e in _fixed_answer(BLOCKED_MESSAGE):
+                yield e
+            return
