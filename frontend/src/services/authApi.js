@@ -7,6 +7,15 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 
 export async function login(email, password) {
   if (USE_MOCK) {
+    // 잠금 계정 mock (로그인 실패 안내 확인용)
+    if (email === 'locked@baton.local') {
+      throw {
+        status: 423,
+        code: 'AUTH_LOCKED',
+        lockedUntil: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+      }
+    }
+
     // TODO(2): email과 password가 둘 다 같은 사용자를 찾는다
     const user = users.find((u) => u.email === email && u.password === password)
     if (!user) {
