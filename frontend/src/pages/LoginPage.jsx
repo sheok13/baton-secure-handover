@@ -9,6 +9,21 @@ const MESSAGES = {
   NETWORK_ERROR: '서버에 연결할 수 없습니다.',
 }
 
+function loginErrorMessage(err) {
+  if (err.code === 'AUTH_INVALID_CREDENTIALS') {
+    const left =
+      err.remainingAttempts != null ? ` (남은 시도 ${err.remainingAttempts}회)` : ''
+    return `${MESSAGES.AUTH_INVALID_CREDENTIALS}${left}`
+  }
+  if (err.code === 'AUTH_LOCKED') {
+    const ms = new Date(err.lockedUntil).getTime() - Date.now()
+    if (Number.isNaN(ms)) return MESSAGES.AUTH_LOCKED
+    const minutes = Math.max(1, Math.ceil(ms / 60000))
+    return `계정이 잠겼습니다. 약 ${minutes}분 후에 다시 시도해 주세요.`
+  }
+  return MESSAGES[err.code] ?? '로그인에 실패했습니다.'
+}
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
@@ -24,7 +39,7 @@ export default function LoginPage() {
       setAuth(res.member, res.accessToken)
       navigate('/documents')
     } catch (err) {
-      setError(MESSAGES[err.code] ?? '로그인에 실패했습니다.')
+      setError(loginErrorMessage(err))
     }
   }
 
