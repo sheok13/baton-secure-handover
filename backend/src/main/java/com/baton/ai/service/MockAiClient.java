@@ -80,6 +80,10 @@ public class MockAiClient implements AiClient {
     }
 
     private AiChatEvent token(String text) {
-        return new AiChatEvent(AiChatEvent.TOKEN, AiJson.MAPPER.writeValueAsString(Map.of("text", text)));
+        try {
+            return new AiChatEvent(AiChatEvent.TOKEN, AiJson.MAPPER.writeValueAsString(Map.of("text", text)));
+        } catch (Exception e) {
+            throw new RuntimeException("가짜 토큰 직렬화 실패", e);
+        }
     }
 }

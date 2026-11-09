@@ -185,11 +185,17 @@ public class ChatStreamService {
 
     /** ASSISTANT 저장 + 세션 updatedAt 갱신. 저장된 messageId를 done에 붙인다 */
     private Long saveAssistant(Long sessionId, String answer, List<SourceDto> sources) {
-        String sourcesJson = AiJson.MAPPER.writeValueAsString(sources);
+        String sourcesJson;
+        try {
+            sourcesJson = AiJson.MAPPER.writeValueAsString(sources);
+        } catch (Exception e) {
+            sourcesJson = "[]";
+        }
+        final String finalSourcesJson = sourcesJson;
         return tx.execute(status -> {
             ChatSession session = sessionRepository.findById(sessionId)
                     .orElseThrow(() -> new IllegalStateException("세션이 사라졌습니다 sessionId=" + sessionId));
-            ChatMessage saved = messageRepository.save(ChatMessage.assistant(session, answer, sourcesJson));
+            ChatMessage saved = messageRepository.save(ChatMessage.assistant(session, answer, finalSourcesJson));
             session.touch();
             return saved.getId();
         });
