@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, FastAPI
 
 from app.api.deps import verify_internal_key
 from app.api.errors import register_error_handlers
+from app.api.routes_chat import router as chat_router
 from app.api.routes_ingest import router as ingest_router
 from app.core.config import get_settings
 
@@ -24,4 +25,5 @@ def health() -> dict:
 # /internal/* 는 전부 내부 API Key 필수 
 internal = APIRouter(prefix="/internal", dependencies=[Depends(verify_internal_key)])
 internal.include_router(ingest_router)
+internal.include_router(chat_router)
 app.include_router(internal)
