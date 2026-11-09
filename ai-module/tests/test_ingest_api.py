@@ -22,3 +22,20 @@ from app.api.main import app  # noqa: E402
 client = TestClient(app)
 HEADERS = {"X-Internal-Api-Key": os.environ["AI_INTERNAL_API_KEY"]}
 FORM = {"docId": "4", "title": "월간 영업보고", "department": "SALES", "minRank": "STAFF"}
+
+@pytest.fixture
+def saved(monkeypatch):
+    """index_chunks를 가짜로: 받은 값을 기록하고 조각 수를 돌려준다."""
+    calls = []
+ 
+    def fake_index(**kwargs):
+        calls.append(kwargs)
+        return len(kwargs["chunks"])
+ 
+    monkeypatch.setattr(routes_ingest, "index_chunks", fake_index)
+    return calls
+ 
+ 
+def upload(data: bytes, filename: str, form=None, headers=HEADERS):
+    files = {"file": (filename, data, "application/octet-stream")}
+    return client.post("/internal/ingest", data=form or FORM, files=files, headers=headers)
