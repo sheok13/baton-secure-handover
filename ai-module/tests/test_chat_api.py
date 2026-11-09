@@ -48,3 +48,29 @@ def fake_e(monkeypatch):
     monkeypatch.setattr(routes_chat, "stream_answer", answer)
     monkeypatch.setattr(routes_chat, "check_output", lambda text: GuardResult(blocked=False))
     return monkeypatch
+
+# ── 스트림이 시작되기 전 (진짜 HTTP 오류) ──
+ 
+def test_rejects_missing_key():
+    res = ask(headers={})
+    assert res.status_code == 401
+    assert res.json()["error"]["code"] == "INTERNAL_AUTH_FAILED"
+ 
+ 
+def test_rejects_missing_filter():
+    res = ask(flt=None)
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "FILTER_INVALID"
+ 
+ 
+def test_rejects_empty_filter():
+    res = ask(flt={"departments": [], "ranks": ["STAFF"]})
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "FILTER_INVALID"
+ 
+ 
+def test_rejects_blank_question():
+    res = ask(question="   ")
+    assert res.status_code == 422
+    assert res.json()["error"]["code"] == "VALIDATION_FAILED"
+ 
