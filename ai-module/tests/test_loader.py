@@ -14,3 +14,28 @@ from langchain_core.documents import Document  # noqa: E402
 from app.core.constants import META_PAGE  # noqa: E402
 from app.ingest.loader import EmptyTextError, UnsupportedFileTypeError, load_document  # noqa: E402
 from app.ingest.splitter import split_documents  # noqa: E402
+
+# ── loader ──
+ 
+def test_pdf_pages_start_from_1(make_pdf):
+    docs = load_document(make_pdf(["Settlement closes on the 25th.", "Second page"]), "manual.pdf")
+    assert [d.metadata[META_PAGE] for d in docs] == [1, 2]  # 0부터가 아니라 1부터 (명세서 5.1)
+    assert "25th" in docs[0].page_content
+ 
+ 
+def test_docx_has_no_page_key(make_docx):
+    docs = load_document(make_docx(["거래처 등록 안내", "연락처 010-0000-1234"]), "guide.docx")
+    assert len(docs) == 1
+    assert META_PAGE not in docs[0].metadata  # Chroma 메타데이터는 null 불가 → 키 자체를 뺀다
+    assert "거래처 등록 안내" in docs[0].page_content
+ 
+ 
+def test_rejects_unsupported_type():
+    with pytest.raises(UnsupportedFileTypeError):
+        load_document(b"hello", "note.txt")
+ 
+ 
+def test_rejects_pdf_without_text(make_pdf):
+    # 스캔본처럼 글자가 없는 PDF → 422 INGEST_EMPTY_TEXT 의 원인
+    with pytest.raises(EmptyTextError):
+        load_document(make_pdf([""]), "scan.pdf")
