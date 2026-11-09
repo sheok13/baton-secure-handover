@@ -1,5 +1,7 @@
 package com.baton.ai.service;
 
+import com.baton.ai.dto.AiChatEvent;
+import com.baton.ai.dto.AiChatRequest;
 import com.baton.ai.dto.AiIngestResponse;
 import com.baton.ai.exception.AiClientException;
 import com.baton.document.entity.FileType;
@@ -10,13 +12,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
 
 /** 실제 AI Module 호출 (기본 구현체). ai.mock-enabled=true일 때만 MockAiClient로 바뀐다 */
 @Slf4j
@@ -25,6 +30,9 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class WebClientAiClient implements AiClient {
 
     private static final Duration DELETE_TIMEOUT = Duration.ofSeconds(10);
+    private static final ParameterizedTypeReference<ServerSentEvent<String>> SSE_TYPE =
+            new ParameterizedTypeReference<>() {
+            };
 
     private final WebClient aiWebClient;
     private final Duration ingestTimeout;
@@ -85,6 +93,27 @@ public class WebClientAiClient implements AiClient {
         } catch (RuntimeException e) {
             log.warn("AI 잔여 청크 정리 실패 docId={} reason={}", docId, e.getClass().getSimpleName());
         }
+    }
+
+    /** 타임아웃(첫 토큰 30초·전체 120초)은 ChatStreamService에서 공통으로 건다 (가짜 AI에도 같은 규칙 적용) */
+    @Override
+    public Flux<AiChatEvent> streamChat(AiChatRequest request) {
+        return aiWebClient.post()
+                .uri("/internal/chat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToFlux(SSE_TYPE)
+                .filter(sse -> sse.event() != null)
+                .map(sse -> new AiChatEvent(sse.event(), sse.data()))
+                .onErrorMap(e -> !(e instanceof AiClientException), e -> {
+                    if (e instanceof WebClientResponseException w) {
+                        return new AiClientException("AI 채팅 오류 status=" + w.getStatusCode().value()
+                                + " body=" + abbreviate(w.getResponseBodyAsString()), e);
+                    }
+                    return new AiClientException("AI 채팅 호출 실패: " + e.getClass().getSimpleName(), e);
+                });
     }
 
     private static String abbreviate(String s) {
