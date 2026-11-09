@@ -14,3 +14,12 @@ os.environ.setdefault("LLM_PROVIDER", "groq")
 os.environ.setdefault("LLM_MODEL", "test-model")
 os.environ.setdefault("GROQ_API_KEY", "test-groq-key")
 os.environ.setdefault("VECTOR_STORE_PATH", "./data/chroma/test")
+
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from langchain_core.documents import Document  # noqa: E402
+ 
+from app.api import routes_chat  # noqa: E402
+from app.api.main import app  # noqa: E402
+from app.guard.types import GuardResult  # noqa: E402
+from app.prompts.system_prompt import BLOCKED_MESSAGE, NO_ANSWER_MESSAGE  # noqa: E402
