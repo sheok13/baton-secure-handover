@@ -7,12 +7,11 @@ COPY . .
 RUN npm run build
 
 FROM nginx:alpine
-# 비root 권한 부여 및 설정
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
-COPY --from=build /app/dist /usr/share/nginx/html
-# Nginx 설정 파일 복사 필요 시 주석 해제: COPY nginx.conf /etc/nginx/conf.d/default.conf
-USER nginx
-EXPOSE 80
-HEALTHCHECK --interval=30s --timeout=5s CMD curl -f http://localhost/ || exit 1
+
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s CMD wget -qO- http://localhost:3000/ >/dev/null || exit 1
 CMD ["nginx", "-g", "daemon off;"]
