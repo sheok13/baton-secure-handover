@@ -118,3 +118,22 @@ def test_llm_no_answer_has_empty_sources(fake_e):
  
     fake_e.setattr(routes_chat, "stream_answer", no_answer)
     assert ("sources", []) in events(ask())
+
+    # ── 스트림 도중 문제 ──
+ 
+def test_output_check_blocks_with_error(fake_e):
+    fake_e.setattr(routes_chat, "check_output", lambda text: GuardResult(blocked="신원" in text))
+    evs = events(ask())
+    assert evs[0] == ("token", {"text": "주의할 점은 "})  # 걸리기 전 조각은 나간다
+    assert evs[-1] == ("error", routes_chat.UNAVAILABLE)  # 걸린 조각은 안 나가고 error로 끝
+    assert all(name != "sources" for name, _ in evs)
+ 
+ 
+def test_exception_becomes_error_event(fake_e):
+    def boom(q, f):
+        raise RuntimeError("Ollama 꺼짐")
+ 
+    fake_e.setattr(routes_chat, "retrieve", boom)
+    res = ask()
+    assert res.status_code == 200  # 스트림은 이미 시작됐으므로 200
+    assert events(res) == [("error", {"code": "AI_UNAVAILABLE", "message": "잠시 후 다시 시도해 주세요."})]
