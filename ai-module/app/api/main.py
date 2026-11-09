@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, FastAPI
 
 from app.api.deps import verify_internal_key
 from app.api.errors import register_error_handlers
+from app.api.routes_chat import router as chat_router
 from app.api.routes_ingest import router as ingest_router
 from app.core.config import get_settings
 
