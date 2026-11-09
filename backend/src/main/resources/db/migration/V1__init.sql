@@ -16,8 +16,8 @@ CREATE TABLE members (
     department          VARCHAR(10)  NOT NULL,                 -- 회원은 ALL 불가
     job_rank            VARCHAR(10)  NOT NULL,                 -- rank는 예약어라 job_rank
     failed_login_count  INT          NOT NULL DEFAULT 0,       -- 연속 로그인 실패 횟수
-    locked_until        DATETIME(6)     NULL,                     -- 잠금 해제 시각 (5회 실패 → +15분)
-    created_at          DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    locked_until        DATETIME(6)  NULL,                     -- 잠금 해제 시각 (5회 실패 → +15분)
+    created_at          DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_members PRIMARY KEY (id),
     CONSTRAINT uk_members_uuid  UNIQUE (uuid),
     CONSTRAINT uk_members_email UNIQUE (email),
@@ -41,7 +41,7 @@ CREATE TABLE documents (
     status              VARCHAR(12)  NOT NULL DEFAULT 'PROCESSING',
     chunk_count         INT          NOT NULL DEFAULT 0,       -- Chroma 청크 수
     masked_count        INT          NOT NULL DEFAULT 0,       -- 마스킹된 개인정보 건수
-    created_at          DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    created_at          DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_documents PRIMARY KEY (id),
     CONSTRAINT fk_documents_owner FOREIGN KEY (owner_id) REFERENCES members (id),
     CONSTRAINT chk_documents_file_type  CHECK (file_type IN ('PDF', 'DOCX')),
@@ -62,8 +62,8 @@ CREATE TABLE chat_sessions (
     id                  BIGINT       NOT NULL AUTO_INCREMENT,
     member_id           BIGINT       NOT NULL,                 -- 소유자 (IDOR 방어: 조회 시 항상 함께 검사)
     title               VARCHAR(100) NOT NULL DEFAULT '새 대화',  -- 생성 시 '새 대화', 첫 질문 저장 시 앞 30자로 갱신
-    created_at          DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at          DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),  -- 메시지 저장 시 갱신, 목록 정렬 기준
+    created_at          DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at          DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),  -- 메시지 저장 시 갱신, 목록 정렬 기준
     CONSTRAINT pk_chat_sessions PRIMARY KEY (id),
     CONSTRAINT fk_chat_sessions_member FOREIGN KEY (member_id) REFERENCES members (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -79,7 +79,7 @@ CREATE TABLE chat_messages (
     role                VARCHAR(10)  NOT NULL,
     content             TEXT         NOT NULL,                 -- 질문 또는 답변
     sources             JSON         NULL,                     -- 재검증된 출처 JSON 문자열 [{"docId":3,"title":"...","page":2}]
-    created_at          DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    created_at          DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_chat_messages PRIMARY KEY (id),
     CONSTRAINT fk_chat_messages_session FOREIGN KEY (session_id)
         REFERENCES chat_sessions (id) ON DELETE CASCADE,
@@ -95,9 +95,9 @@ CREATE TABLE refresh_tokens (
     id                  BIGINT       NOT NULL AUTO_INCREMENT,
     member_id           BIGINT       NOT NULL,
     token_hash          CHAR(64)     NOT NULL,                 -- SHA-256 hex
-    expires_at          DATETIME(6)     NOT NULL,
-    revoked_at          DATETIME(6)     NULL,                     -- 재발급·로그아웃 시 폐기 시각
-    created_at          DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    expires_at          DATETIME(6)  NOT NULL,
+    revoked_at          DATETIME(6)  NULL,                     -- 재발급·로그아웃 시 폐기 시각
+    created_at          DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_refresh_tokens PRIMARY KEY (id),
     CONSTRAINT uk_refresh_tokens_hash UNIQUE (token_hash),
     CONSTRAINT fk_refresh_tokens_member FOREIGN KEY (member_id) REFERENCES members (id)
