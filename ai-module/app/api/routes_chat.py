@@ -25,3 +25,7 @@ router = APIRouter()
 
 SSE_HEADERS = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
 UNAVAILABLE = {"code": "AI_UNAVAILABLE", "message": "잠시 후 다시 시도해 주세요."}
+
+def _fixed_answer(text: str) -> list[str]:
+    """LLM 없이 보내는 고정 응답: token 1건 + 빈 sources + done"""
+    return [sse_event("token", {"text": text}), sse_event("sources", []), sse_event("done", {})]
