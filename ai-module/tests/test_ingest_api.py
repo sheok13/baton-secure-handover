@@ -18,3 +18,7 @@ from fastapi.testclient import TestClient  # noqa: E402
  
 from app.api import routes_ingest  # noqa: E402
 from app.api.main import app  # noqa: E402
+
+client = TestClient(app)
+HEADERS = {"X-Internal-Api-Key": os.environ["AI_INTERNAL_API_KEY"]}
+FORM = {"docId": "4", "title": "월간 영업보고", "department": "SALES", "minRank": "STAFF"}
