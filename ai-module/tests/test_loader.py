@@ -39,3 +39,18 @@ def test_rejects_pdf_without_text(make_pdf):
     # 스캔본처럼 글자가 없는 PDF → 422 INGEST_EMPTY_TEXT 의 원인
     with pytest.raises(EmptyTextError):
         load_document(make_pdf([""]), "scan.pdf")
+
+
+# ── splitter ──
+ 
+def test_split_keeps_size_and_page():
+    text = ("거래처별 매출과 수금 내역은 매월 25일까지 ERP에 입력한다. " * 60).strip()
+    chunks = split_documents([Document(page_content=text, metadata={META_PAGE: 3})])
+    assert len(chunks) >= 2
+    assert all(len(c.page_content) <= 800 for c in chunks)  # CHUNK_SIZE
+    assert all(c.metadata[META_PAGE] == 3 for c in chunks)  # 조각마다 원래 페이지 유지
+ 
+ 
+def test_short_doc_is_one_chunk():
+    chunks = split_documents([Document(page_content="짧은 문서", metadata={})])
+    assert [c.page_content for c in chunks] == ["짧은 문서"]
