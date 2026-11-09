@@ -42,3 +42,9 @@ def fake_e(monkeypatch):
     async def answer(question, docs, history):
         for t in ["주의할 점은 ", "신원 확인입니다."]:
             yield t
+
+    monkeypatch.setattr(routes_chat, "check_question", lambda q: GuardResult(blocked=False))
+    monkeypatch.setattr(routes_chat, "retrieve", lambda q, f: [(DOC, 0.9)])
+    monkeypatch.setattr(routes_chat, "stream_answer", answer)
+    monkeypatch.setattr(routes_chat, "check_output", lambda text: GuardResult(blocked=False))
+    return monkeypatch
