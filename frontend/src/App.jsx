@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import LoginPage from './pages/LoginPage.jsx'
 import DocumentsPage from './pages/DocumentsPage.jsx'
+import ChatPage from './pages/ChatPage.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import Layout from './components/Layout.jsx'
 import Toast from './components/Toast.jsx'
@@ -41,6 +42,7 @@ export default function App() {
           }
         >
           <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/chat" element={<ChatPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/documents" replace />} />
       </Routes>
