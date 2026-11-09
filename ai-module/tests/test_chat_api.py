@@ -23,3 +23,8 @@ from app.api import routes_chat  # noqa: E402
 from app.api.main import app  # noqa: E402
 from app.guard.types import GuardResult  # noqa: E402
 from app.prompts.system_prompt import BLOCKED_MESSAGE, NO_ANSWER_MESSAGE  # noqa: E402
+
+client = TestClient(app)
+HEADERS = {"X-Internal-Api-Key": os.environ["AI_INTERNAL_API_KEY"]}
+SALES_STAFF = {"departments": ["SALES", "ALL"], "ranks": ["STAFF"]}
+DOC = Document(page_content="가짜 내용", metadata={"doc_id": 3, "title": "거래처 관리 매뉴얼"})
