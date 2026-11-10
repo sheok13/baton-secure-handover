@@ -53,8 +53,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final ObjectMapper objectMapper;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${cors.allowed-origins:http://localhost:5173}")
     private String allowedOrigins;
