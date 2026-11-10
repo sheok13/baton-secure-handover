@@ -3,7 +3,7 @@ COPY --from=ghcr.io/astral-sh/uv:0.12.23 /uv /uvx /bin/
 WORKDIR /app
 
 # UID 고정: EC2에서 bind mount를 쓸 때 chown 1000:1000으로 맞추기 쉬움
-RUN useradd -m -u 1000 aiapp \
+RUN useradd -m -aiapp \
  && mkdir -p /data/chroma \
  && chown -R aiapp:aiapp /app /data/chroma
 
