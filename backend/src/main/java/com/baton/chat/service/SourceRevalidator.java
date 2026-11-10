@@ -44,7 +44,6 @@ public class SourceRevalidator {
         for (SourceDto s : sources) {
             Document doc = s.docId() == null ? null : docs.get(s.docId());
             if (doc == null || !accessPolicy.canRead(me.department(), me.rank(), doc)) {
-                // TODO(A): AuditLogger 머지 후 감사 로그로 교체
                 log.warn("[AUDIT] SOURCE_FILTERED memberUuid={} docId={}", me.uuid(), s.docId());
                 continue;
             }

@@ -3,6 +3,7 @@ package com.baton.chat.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -105,7 +106,7 @@ class ChatStreamServiceTest {
     }
 
     @Test
-    @DisplayName("정상: token 중계 → 출처 재검증(5번 제거) → ASSISTANT 저장 → done에 messageId, 첫 질문으로 제목 갱신")
+    @DisplayName("정상: token 중계 → 출처 재검증(5번 제거) → done 때 USER→ASSISTANT 순서로 저장 → done에 messageId, 첫 질문으로 제목 갱신")
     void happyPath() throws InterruptedException {
         when(messageRepository.findTop6BySessionIdOrderByIdDesc(1L)).thenReturn(List.of(
                 ChatMessage.assistant(session, "이전 답변", "[]"),
@@ -121,8 +122,15 @@ class ChatStreamServiceTest {
 
         assertThat(emitter.all()).contains("event:token", "event:sources", "event:done", "messageId=42");
 
+        // 저장은 done 수신 후 한 번에: USER → ASSISTANT 순서 (captor는 호출 순서대로 쌓인다)
         ArgumentCaptor<ChatMessage> saved = ArgumentCaptor.forClass(ChatMessage.class);
         verify(messageRepository, times(2)).save(saved.capture());
+        assertThat(saved.getAllValues()).extracting(ChatMessage::getRole)
+                .containsExactly(MessageRole.USER, MessageRole.ASSISTANT);
+
+        ChatMessage user = saved.getAllValues().get(0);
+        assertThat(user.getContent()).isEqualTo("정산 마감이 언제야?");
+
         ChatMessage assistant = saved.getAllValues().get(1);
         assertThat(assistant.getContent()).isEqualTo("매월 25일까지 입니다.");
         assertThat(assistant.getSources()).contains("\"docId\":3").doesNotContain("\"docId\":5");
@@ -138,7 +146,7 @@ class ChatStreamServiceTest {
     }
 
     @Test
-    @DisplayName("AI가 error 이벤트 → FE에 AI_UNAVAILABLE, ASSISTANT 저장 안 함")
+    @DisplayName("AI가 error 이벤트 → FE에 AI_UNAVAILABLE, 질문·답변 모두 저장 안 함")
     void aiErrorEvent() throws InterruptedException {
         when(messageRepository.findTop6BySessionIdOrderByIdDesc(1L)).thenReturn(List.of());
         when(aiClient.streamChat(any())).thenReturn(Flux.just(token("부분 "),
@@ -149,11 +157,11 @@ class ChatStreamServiceTest {
         assertThat(emitter.done.await(5, TimeUnit.SECONDS)).isTrue();
 
         assertThat(emitter.all()).contains("event:error", "AI_UNAVAILABLE").doesNotContain("event:done");
-        verify(messageRepository, times(1)).save(any());   // USER만
+        verify(messageRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("done 없이 스트림 종료 → error, ASSISTANT 저장 안 함")
+    @DisplayName("done 없이 스트림 종료 → error, 질문·답변 모두 저장 안 함")
     void streamCutWithoutDone() throws InterruptedException {
         when(messageRepository.findTop6BySessionIdOrderByIdDesc(1L)).thenReturn(List.of());
         when(aiClient.streamChat(any())).thenReturn(Flux.just(token("끊김")));
@@ -163,11 +171,11 @@ class ChatStreamServiceTest {
         assertThat(emitter.done.await(5, TimeUnit.SECONDS)).isTrue();
 
         assertThat(emitter.all()).contains("event:error");
-        verify(messageRepository, times(1)).save(any());
+        verify(messageRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("AI 연결 실패(Flux 오류) → error")
+    @DisplayName("AI 연결 실패(Flux 오류) → error, 질문·답변 모두 저장 안 함")
     void aiConnectionFailure() throws InterruptedException {
         when(messageRepository.findTop6BySessionIdOrderByIdDesc(1L)).thenReturn(List.of());
         when(aiClient.streamChat(any())).thenReturn(Flux.error(new IllegalStateException("connection refused")));
@@ -177,10 +185,11 @@ class ChatStreamServiceTest {
         assertThat(emitter.done.await(5, TimeUnit.SECONDS)).isTrue();
 
         assertThat(emitter.all()).contains("event:error", "AI_UNAVAILABLE");
+        verify(messageRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("타인 세션 → 스트림 시작 전에 404, USER 저장·AI 호출 없음")
+    @DisplayName("타인 세션 → 스트림 시작 전에 404, 저장·AI 호출 없음")
     void otherSession() {
         when(sessionRepository.findByIdAndMemberId(9L, 1L)).thenReturn(Optional.empty());
 
@@ -190,5 +199,34 @@ class ChatStreamServiceTest {
                 .isEqualTo(ChatErrorCode.SESSION_NOT_FOUND);
         verify(messageRepository, never()).save(any());
         verify(aiClient, never()).streamChat(any());
+    }
+
+    @Test
+    @DisplayName("AI token data가 JSON이 아님 → error 이벤트, 질문·답변 모두 저장 안 함")
+    void malformedAiJson() throws InterruptedException {
+        when(messageRepository.findTop6BySessionIdOrderByIdDesc(1L)).thenReturn(List.of());
+        when(aiClient.streamChat(any())).thenReturn(Flux.just(new AiChatEvent("token", "not-json")));
+
+        RecordingEmitter emitter = new RecordingEmitter();
+        service.stream(SALES_STAFF, 1L, "질문", emitter);
+        assertThat(emitter.done.await(5, TimeUnit.SECONDS)).isTrue();
+
+        assertThat(emitter.all()).contains("event:error", "AI_UNAVAILABLE");
+        verify(messageRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("done 후 DB 저장 실패 → done 대신 error를 보내고 스트림을 바로 닫는다 (타임아웃까지 매달리지 않음)")
+    void saveFailureAfterDone() throws InterruptedException {
+        when(messageRepository.findTop6BySessionIdOrderByIdDesc(1L)).thenReturn(List.of());
+        when(aiClient.streamChat(any())).thenReturn(Flux.just(token("답변"), new AiChatEvent("done", "{}")));
+        // when(...save(any())) 형태는 기존 thenAnswer를 null 인자로 호출해 NPE가 나므로 doThrow를 쓴다
+        doThrow(new IllegalStateException("DB down")).when(messageRepository).save(any(ChatMessage.class));
+
+        RecordingEmitter emitter = new RecordingEmitter();
+        service.stream(SALES_STAFF, 1L, "질문", emitter);
+        assertThat(emitter.done.await(5, TimeUnit.SECONDS)).isTrue();
+
+        assertThat(emitter.all()).contains("event:error", "AI_UNAVAILABLE").doesNotContain("event:done");
     }
 }
