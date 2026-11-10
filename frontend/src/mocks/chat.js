@@ -15,8 +15,10 @@ export const chatMessages = {
       id: 2,
       role: 'ASSISTANT',
       content: '월간 영업보고는 거래처별 실적을 먼저 정리한 뒤 팀장 검토를 받아 제출합니다.',
-      // TODO: sources 필드명은 명세서(6.Frontend개발명세서.md)와 맞춰 확인
-      sources: [{ documentId: 1, title: '월간 영업보고 작성법' }],
+      sources: [
+        { docId: 1, title: '월간 영업보고 작성법', page: 3 },
+        { docId: 2, title: '영업 보고 양식', page: null },
+      ],
       createdAt: '2026-11-07T10:00:05',
     },
   ],

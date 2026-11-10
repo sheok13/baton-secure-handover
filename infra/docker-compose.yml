@@ -28,6 +28,11 @@ services:
       - "8000"
     volumes:
       - chroma_data:/data/chroma
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
     networks:
       - baton-net
@@ -40,6 +45,8 @@ services:
     env_file: ../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:mariadb://database:3306/baton_db
+      SPRING_DATASOURCE_USERNAME: ${MARIADB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MARIADB_PASSWORD}
       AI_BASE_URL: http://ai-module:8000
     expose:
       - "8080"
@@ -57,12 +64,27 @@ services:
       context: ../frontend
     image: ${DOCKERHUB_USERNAME}/baton-frontend:${IMAGE_TAG:-latest}
     container_name: baton-frontend
-    ports:
-      - "80:80"
+    # 프론트엔드가 직접 80포트를 쓰던 것을 nginx로 넘기기 위해 ports를 제거하고 expose로 변경
+    expose:
+      - "3000"
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - baton-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: baton-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/local.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    restart: always
     networks:
       - baton-net
 
