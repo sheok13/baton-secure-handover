@@ -64,12 +64,27 @@ services:
       context: ../frontend
     image: ${DOCKERHUB_USERNAME}/baton-frontend:${IMAGE_TAG:-latest}
     container_name: baton-frontend
-    ports:
-      - "80:80"
+    # 프론트엔드가 직접 80포트를 쓰던 것을 nginx로 넘기기 위해 ports를 제거하고 expose로 변경
+    expose:
+      - "3000"
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - baton-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: baton-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/local.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    restart: always
     networks:
       - baton-net
 
