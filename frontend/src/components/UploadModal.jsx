@@ -55,11 +55,11 @@ export default function UploadModal({ onClose, onUploaded }) {
       onUploaded()
       onClose()
     } catch (err) {
-    const message =
-    ERROR_MESSAGES[err.code] ??
-    (err.status === 413 ? ERROR_MESSAGES.FILE_TOO_LARGE : '업로드에 실패했습니다.')
-    setError(message)
-    setLoading(false)
+      const message =
+        ERROR_MESSAGES[err.code] ??
+        (err.status === 413 ? ERROR_MESSAGES.FILE_TOO_LARGE : '업로드에 실패했습니다.')
+      setError(message)
+      setLoading(false)
     }
   }
 
