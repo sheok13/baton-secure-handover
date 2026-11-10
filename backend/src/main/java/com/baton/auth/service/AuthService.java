@@ -68,7 +68,7 @@ public class AuthService {
         }
 
         Member member = memberOpt.get();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(KST);
 
         // 2. 계정 잠금 상태 확인
         if (member.isLocked(now)) {
@@ -121,7 +121,7 @@ public class AuthService {
         }
 
         String newRefreshToken = jwtProvider.createRefreshToken();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(KST);
         LocalDateTime newExpiresAt = now.plusSeconds(jwtProvider.getRefreshExpirationMs() / 1000);
 
         Member member = refreshTokenService.validateAndRotate(rawRefreshToken, newRefreshToken, newExpiresAt);
