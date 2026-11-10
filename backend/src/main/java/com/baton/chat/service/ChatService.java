@@ -59,7 +59,6 @@ public class ChatService {
     public ChatSession findOwnedSession(AuthMember me, Long sessionId) {
         return sessionRepository.findByIdAndMemberId(sessionId, me.id())
                 .orElseThrow(() -> {
-                    // TODO(A): AuditLogger 머지 후 권한 밖 세션 접근 감사 로그로 교체
                     log.warn("[AUDIT] SESSION_NOT_FOUND_OR_DENIED memberUuid={} sessionId={}", me.uuid(), sessionId);
                     return new BusinessException(ChatErrorCode.SESSION_NOT_FOUND);
                 });
