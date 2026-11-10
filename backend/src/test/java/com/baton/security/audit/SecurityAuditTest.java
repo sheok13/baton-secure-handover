@@ -177,10 +177,7 @@ class SecurityAuditTest {
 
         @BeforeEach
         void setUp() {
-            jwtProvider = new JwtProvider();
-            ReflectionTestUtils.setField(jwtProvider, "secretKeyString", secret);
-            ReflectionTestUtils.setField(jwtProvider, "accessExpirationMs", 1800000L);
-            ReflectionTestUtils.setField(jwtProvider, "refreshExpirationMs", 604800000L);
+            jwtProvider = new JwtProvider(secret, 1800000L, 604800000L);
             jwtProvider.init();
         }
 
