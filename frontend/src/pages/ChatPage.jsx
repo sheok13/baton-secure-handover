@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ChatSidebar from '../components/ChatSidebar.jsx'
 import ChatMessage from '../components/ChatMessage.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
-import { listSessions, listMessages, streamAnswer } from '../services/chatApi.js'
+import { listSessions, listMessages, createSession, streamAnswer } from '../services/chatApi.js'
+
+const ERROR_MESSAGES = {
+  SESSION_NOT_FOUND: '대화를 찾을 수 없습니다. 새 대화로 다시 시도해 주세요.',
+  NETWORK_ERROR: '네트워크 연결을 확인한 뒤 다시 시도해 주세요.',
+  AI_UNAVAILABLE: '잠시 후 다시 시도해 주세요.',
+  STREAM_INTERRUPTED: '답변이 중간에 끊겼습니다. 다시 시도해 주세요.',
+}
 
 export default function ChatPage() {
   const [sessions, setSessions] = useState([])
@@ -11,6 +18,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false)
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
+  const lastQuestion = useRef('')
 
   useEffect(() => {
     listSessions().then(setSessions)
@@ -25,43 +33,90 @@ export default function ChatPage() {
       .finally(() => setLoading(false))
   }
 
-  async function handleSend(e) {
-    e.preventDefault()
-    const question = input.trim()
-    if (!question || streaming || selectedId === null) return
+  function handleNew() {
+    if (streaming) return
+    setSelectedId(null)
+    setMessages([])
+  }
 
-    setInput('')
+  const patch = (id, fn) =>
+    setMessages((prev) => prev.map((m) => (m.id === id ? fn(m) : m)))
+
+  async function sendQuestion(question) {
+    if (streaming) return
+    lastQuestion.current = question
     setStreaming(true)
 
-    const now = Date.now()
+    const assistantId = Date.now() + 1
+    let sessionId = selectedId
+
     setMessages((prev) => [
       ...prev,
-      { id: now, role: 'USER', content: question },
-      { id: now + 1, role: 'ASSISTANT', content: '' },
+      { id: assistantId - 1, role: 'USER', content: question },
+      { id: assistantId, role: 'ASSISTANT', content: '', streaming: true },
     ])
 
+    const fail = (err) =>
+      patch(assistantId, (m) => ({
+        ...m,
+        streaming: false,
+        error: ERROR_MESSAGES[err?.code] ?? '잠시 후 다시 시도해 주세요.',
+      }))
+
     try {
-      await streamAnswer(question, (token) => {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === now + 1 ? { ...m, content: m.content + token } : m)),
-        )
+      if (sessionId === null) {
+        const created = await createSession()
+        sessionId = created.id
+        setSelectedId(sessionId)
+      }
+      await streamAnswer(sessionId, question, {
+        onToken: (text) => patch(assistantId, (m) => ({ ...m, content: m.content + text })),
+        onSources: (sources) => patch(assistantId, (m) => ({ ...m, sources })),
+        onDone: () => patch(assistantId, (m) => ({ ...m, streaming: false })),
+        onError: fail,
       })
+    } catch (err) {
+      fail(err)
     } finally {
       setStreaming(false)
+      listSessions().then(setSessions).catch(() => {})
     }
+  }
+
+  function handleSend(e) {
+    e.preventDefault()
+    const question = input.trim()
+    if (!question || streaming) return
+    setInput('')
+    sendQuestion(question)
+  }
+
+  function handleRetry() {
+    if (streaming) return
+    setMessages((prev) => prev.slice(0, -2))
+    sendQuestion(lastQuestion.current)
   }
 
   return (
     <div className="flex min-h-[70vh]">
-      <ChatSidebar sessions={sessions} selectedId={selectedId} onSelect={handleSelect} />
+      <ChatSidebar
+        sessions={sessions}
+        selectedId={selectedId}
+        onSelect={handleSelect}
+        onNew={handleNew}
+      />
       <div className="flex flex-1 flex-col">
         <section className="flex-1 space-y-3 overflow-y-auto p-4">
-          {selectedId === null && (
-            <p className="text-gray-500">왼쪽에서 대화를 선택하세요.</p>
+          {selectedId === null && messages.length === 0 && (
+            <p className="text-gray-500">질문을 입력하면 새 대화가 시작됩니다.</p>
           )}
           {loading && <LoadingSpinner />}
-          {messages.map((m) => (
-            <ChatMessage key={m.id} message={m} />
+          {messages.map((m, i) => (
+            <ChatMessage
+              key={m.id}
+              message={m}
+              onRetry={m.error && i === messages.length - 1 && !streaming ? handleRetry : undefined}
+            />
           ))}
         </section>
         <form onSubmit={handleSend} className="flex gap-2 border-t border-gray-700 p-3">
@@ -70,9 +125,10 @@ export default function ChatPage() {
             placeholder="질문을 입력하세요"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            disabled={streaming || selectedId === null}
+            disabled={streaming}
+            maxLength={1000}
           />
-          <button className="rounded border px-4 py-2" disabled={streaming || selectedId === null}>
+          <button className="rounded border px-4 py-2" disabled={streaming}>
             보내기
           </button>
         </form>
