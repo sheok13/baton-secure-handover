@@ -11,6 +11,8 @@ const ERROR_MESSAGES = {
   FILE_TOO_LARGE: '파일은 10MB 이하만 올릴 수 있습니다.',
   DOC_FORBIDDEN_SCOPE: '선택한 공개 범위로는 올릴 수 없습니다.',
   AI_INGEST_FAILED: '문서 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+  VALIDATION_FAILED: '입력값을 확인해 주세요.',
+  AI_UNAVAILABLE: '문서 처리를 위한 AI 서버가 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.',
 }
 
 export default function UploadModal({ onClose, onUploaded }) {
@@ -53,7 +55,10 @@ export default function UploadModal({ onClose, onUploaded }) {
       onUploaded()
       onClose()
     } catch (err) {
-      setError(ERROR_MESSAGES[err.code] ?? '업로드에 실패했습니다.')
+      const message =
+        ERROR_MESSAGES[err.code] ??
+        (err.status === 413 ? ERROR_MESSAGES.FILE_TOO_LARGE : '업로드에 실패했습니다.')
+      setError(message)
       setLoading(false)
     }
   }
