@@ -15,6 +15,10 @@ spec:
       labels:
         app: database
     spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
       containers:
         - name: database
           image: docker.io/library/mariadb:11.2
@@ -39,7 +43,7 @@ spec:
           readinessProbe:
             tcpSocket:
               port: 3306
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             periodSeconds: 5
           volumeMounts:
             - name: db-data
