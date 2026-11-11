@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -118,7 +119,7 @@ class AuthServiceTest {
 
         // 이미 4회 실패 상태
         for (int i = 0; i < 4; i++) {
-            member.recordLoginFailure(5, 15, LocalDateTime.now());
+            member.recordLoginFailure(5, 15, LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         }
 
         when(memberRepository.findByEmail("sales.staff@baton.local")).thenReturn(Optional.of(member));
@@ -134,7 +135,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("계정이 이미 잠긴 상태면 비밀번호 검사 없이 즉시 AccountLockedException 발생")
     void login_alreadyLocked() {
-        LocalDateTime lockedUntil = LocalDateTime.now().plusMinutes(10);
+        LocalDateTime lockedUntil = LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusMinutes(10);
         Member lockedMember = Member.builder()
                 .email("sales.staff@baton.local")
                 .failedLoginCount(5)
