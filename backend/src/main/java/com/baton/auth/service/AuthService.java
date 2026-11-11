@@ -48,8 +48,11 @@ public class AuthService {
 
     /**
      * 로그인 인증 처리
+     * 
+     * 비밀번호 불일치(LoginFailedException) 또는 계정 잠금(AccountLockedException) 발생 시에도
+     * failed_login_count 및 locked_until 변경 사항이 DB에 정상 커밋되도록 noRollbackFor 설정.
      */
-    @Transactional
+    @Transactional(noRollbackFor = {LoginFailedException.class, AccountLockedException.class})
     public LoginResult login(LoginRequest request) {
         String email = request.getEmail().strip();
         String maskedEmail = maskEmail(email);
@@ -65,7 +68,7 @@ public class AuthService {
         }
 
         Member member = memberOpt.get();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(KST);
 
         // 2. 계정 잠금 상태 확인
         if (member.isLocked(now)) {
@@ -77,6 +80,7 @@ public class AuthService {
         // 3. 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), member.getPasswordHash())) {
             int remainingAttempts = member.recordLoginFailure(MAX_ATTEMPTS, LOCK_DURATION_MINUTES, now);
+            memberRepository.save(member);
 
             if (remainingAttempts == 0) {
                 OffsetDateTime lockedUntilKst = member.getLockedUntil().atZone(KST).toOffsetDateTime();
@@ -117,7 +121,7 @@ public class AuthService {
         }
 
         String newRefreshToken = jwtProvider.createRefreshToken();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(KST);
         LocalDateTime newExpiresAt = now.plusSeconds(jwtProvider.getRefreshExpirationMs() / 1000);
 
         Member member = refreshTokenService.validateAndRotate(rawRefreshToken, newRefreshToken, newExpiresAt);
