@@ -111,21 +111,24 @@ async function readSse(res, handlers) {
       if (!block.trim()) continue
 
       const { event, data } = parseBlock(block)
-      if (event === 'done' || event === 'error') finished = true
 
       let payload
       try {
         payload = JSON.parse(data)
       } catch {
         // 이벤트 하나가 깨졌다고 답변 전체를 끊지 않는다 (서버는 항상 JSON을 보냄)
-        console.warn('SSE data 파싱 실패', event, data)
-        continue
+        throw new Error('답변 데이터를 읽을 수 없습니다. 다시 시도해 주세요.')
       }
 
+      if (event === 'done' || event === 'error') finished = true
       if (event === 'token') handlers.onToken?.(payload.text)
       else if (event === 'sources') handlers.onSources?.(payload)
       else if (event === 'done') handlers.onDone?.(payload)
       else if (event === 'error') handlers.onError?.(payload)
+      if (finished) {
+        await reader.cancel()
+        return
+      }
     }
   }
 

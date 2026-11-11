@@ -80,6 +80,21 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("HttpMessageNotReadableException 발생 시 400 VALIDATION_FAILED 반환 (깨진 JSON)")
+    void handleHttpMessageNotReadable() {
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException(
+                "JSON parse error: Unexpected character", (HttpInputMessage) null);
+
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleHttpMessageNotReadable(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().isSuccess()).isFalse();
+        assertThat(response.getBody().getError().getCode()).isEqualTo("VALIDATION_FAILED");
+        assertThat(response.getBody().getError().getMessage()).isEqualTo("요청 본문 형식이 올바르지 않습니다.");
+    }
+
+    @Test
     @DisplayName("기타 예외 발생 시 500 INTERNAL_ERROR 반환 (스택트레이스 숨김)")
     void handleException() {
         Exception ex = new RuntimeException("DB 연결 끊김 등 알 수 없는 에러");
@@ -144,11 +159,11 @@ class GlobalExceptionHandlerTest {
         HttpMessageNotReadableException ex = new HttpMessageNotReadableException(
                 "JSON parse error: Unexpected end-of-input at [Source: ...]", mock(HttpInputMessage.class));
 
-        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleNotReadable(ex);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleHttpMessageNotReadable(ex);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody().getError().getMessage())
-                .isEqualTo("요청 본문의 형식이 올바르지 않습니다.")
+                .isEqualTo("요청 본문 형식이 올바르지 않습니다.")
                 .doesNotContain("JSON parse error");
     }
 

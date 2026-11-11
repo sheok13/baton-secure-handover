@@ -17,6 +17,7 @@ from app.api.schemas import HistoryMessage
 from app.core.config import get_settings
 from app.core.constants import META_TITLE, META_PAGE
 from app.core.models import get_llm
+from app.rag.answer_format import SourceLabelStream
 from app.prompts.system_prompt import (
     CONTEXT_TEMPLATE,
     NO_ANSWER_MESSAGE,
@@ -117,11 +118,16 @@ async def stream_answer(
 
     chain = prompt | get_llm() | StrOutputParser()
 
-    # 모델 오류는 D의 라우터가 SSE error로 처리하도록 전달
+    formatter = SourceLabelStream(list({doc.metadata[META_TITLE] for doc in docs}))
+    # 일반 텍스트는 즉시 전송하고 출처 표기 후보만 토큰 경계를 넘어 보류합니다.
     async for text in chain.astream({
         "history": history_messages,
         "context": context,
         "question": question,
     }):
-        if text:
-            yield text
+        cleaned = formatter.feed(text)
+        if cleaned:
+            yield cleaned
+    remaining = formatter.finish()
+    if remaining:
+        yield remaining

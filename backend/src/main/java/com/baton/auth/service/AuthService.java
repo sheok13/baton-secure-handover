@@ -4,6 +4,7 @@ import com.baton.auth.dto.LoginRequest;
 import com.baton.auth.dto.LoginResponse;
 import com.baton.auth.dto.LoginResult;
 import com.baton.auth.dto.MemberInfoResponse;
+import com.baton.common.BusinessException;
 import com.baton.common.exception.AccountLockedException;
 import com.baton.common.exception.LoginFailedException;
 import com.baton.member.entity.Member;
@@ -113,8 +114,9 @@ public class AuthService {
     /**
      * 토큰 재발급 (POST /api/auth/refresh)
      * Refresh Token 쿠키를 읽어 새 Access Token 및 새 Refresh Token 발급 (Rotation)
+     * 재사용 감지 시 일괄 폐기 트랜잭션이 롤백되지 않도록 noRollbackFor 적용.
      */
-    @Transactional
+    @Transactional(noRollbackFor = {BusinessException.class})
     public LoginResult reissue(String rawRefreshToken) {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
             throw new com.baton.common.BusinessException(com.baton.auth.exception.AuthErrorCode.AUTH_REFRESH_INVALID);

@@ -25,7 +25,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
  *
  * - 프론트엔드 합의 공통 응답 규격({ success: false, error: { ... } }) 준수
  * - 로그인 실패(401, remainingAttempts), 계정 잠금(423, lockedUntil) 정밀 처리
- * - 클라이언트 입력 오류(형식·경로·메서드·Content-Type)는 500이 아닌 4xx로 응답한다 (보안점검 B-11)
+ * - 클라이언트 입력 오류(형식·경로·메서드·Content-Type)는 500이 아닌 4xx로 응답한다 (보안점검 B-8, B-11)
  * - 보안 원칙: 오류 메시지에 내부 클래스명·스택 트레이스·SQL·내부 경로를 노출하지 않고 서버 로그에만 기록
  */
 @Slf4j
@@ -90,6 +90,16 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 잘못된 HTTP 요청 본문 형식 (400 Bad Request, 깨진 JSON 파싱 실패 등)
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        log.warn("요청 본문 파싱 실패 (잘못된 JSON 형식): {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(CommonErrorCode.VALIDATION_FAILED, "요청 본문 형식이 올바르지 않습니다."));
+    }
+
+    /**
      * 경로·쿼리 파라미터 타입 불일치 (예: GET /documents/abc) → 400
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -97,15 +107,6 @@ public class GlobalExceptionHandler {
         String message = "'" + e.getName() + "' 값의 형식이 올바르지 않습니다.";
         log.warn("파라미터 타입 불일치: name={}", e.getName());
         return badRequest(message);
-    }
-
-    /**
-     * 요청 본문을 읽을 수 없음 (깨진 JSON, 본문 누락, enum 값 오류 등) → 400
-     */
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotReadable(HttpMessageNotReadableException e) {
-        log.warn("요청 본문 해석 실패: {}", e.getClass().getSimpleName());
-        return badRequest("요청 본문의 형식이 올바르지 않습니다.");
     }
 
     /**

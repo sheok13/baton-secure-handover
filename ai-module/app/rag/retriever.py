@@ -95,8 +95,17 @@ def retrieve(
     return filtered_results
 
 
+def select_reference_document(hits: list[tuple[Document, float]]) -> list[Document]:
+    """최고 관련도 문서 하나에 속한 검색 청크만 답변 근거로 사용합니다."""
+    if not hits:
+        return []
+    ranked = sorted(hits, key=lambda hit: hit[1], reverse=True)
+    selected_id = ranked[0][0].metadata[META_DOC_ID]
+    return [doc for doc, _ in ranked if doc.metadata[META_DOC_ID] == selected_id]
+
+
 def format_sources(docs: list[Document]) -> list[dict]:
-    """검색 메타데이터로 출처를 생성하고 문서·페이지 중복을 제거합니다."""
+    """문서당 하나의 출처를 생성하며 가장 관련 있는 청크의 페이지를 사용합니다."""
 
     sources = []
     seen = set()
@@ -108,7 +117,7 @@ def format_sources(docs: list[Document]) -> list[dict]:
         title = metadata[META_TITLE]
         page = metadata.get(META_PAGE)
 
-        source_key = (doc_id, page)
+        source_key = doc_id
 
         if source_key in seen:
             continue

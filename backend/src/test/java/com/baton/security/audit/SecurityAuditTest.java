@@ -251,9 +251,10 @@ class SecurityAuditTest {
                         assertThat(be.getErrorCode()).isEqualTo(AuthErrorCode.AUTH_REFRESH_INVALID);
                     });
 
-            // 🚨 핵심 방어: 해당 회원의 활성 토큰을 모두 강제 폐기(revokeAllByMemberId)했는지 검증
+            // 🚨 핵심 방어: 해당 회원의 활성 토큰을 모두 강제 폐기(revokeAllByMemberId)하고 flush했는지 검증
             verify(refreshTokenRepository, times(1)).revokeAllByMemberId(eq(memberId), any(LocalDateTime.class));
-            System.out.println("[AUDIT VERIFIED] 폐기된 Refresh Token 재사용 공격 감지 -> 전체 토큰 일괄 폐기 확인 완료");
+            verify(refreshTokenRepository, times(1)).flush();
+            System.out.println("[AUDIT VERIFIED] 폐기된 Refresh Token 재사용 공격 감지 -> 전체 토큰 일괄 폐기 및 즉시 커밋 확인 완료");
         }
     }
 }
