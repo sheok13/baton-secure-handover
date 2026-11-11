@@ -19,9 +19,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const lastQuestion = useRef('')
-  const selection = useRef(0)
-  const sending = useRef(false)
-  const [pageError, setPageError] = useState('')
+  const bottomRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -29,6 +27,11 @@ export default function ChatPage() {
       .catch(() => { if (active) setPageError('대화 목록을 불러오지 못했습니다. 다시 로그인하거나 새로고침해 주세요.') })
     return () => { active = false; selection.current += 1 }
   }, [])
+
+  // 새 메시지·스트리밍 글자가 늘어날 때 맨 아래로 따라간다
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: 'end' })
+  }, [messages])
 
   function handleSelect(id) {
     if (sending.current) return
@@ -135,6 +138,7 @@ export default function ChatPage() {
               onRetry={m.error && i === messages.length - 1 && !streaming ? handleRetry : undefined}
             />
           ))}
+          <div ref={bottomRef} />
         </section>
         <form onSubmit={handleSend} className="flex gap-2 border-t border-gray-700 p-3">
           <input
