@@ -33,12 +33,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import tools.jackson.core.JacksonException;
 
 /**
  * 질문 → AI SSE 중계 (API 설계서 5.1, Backend 명세 6장).
- * 처리 순서: 소유자 검증 → USER 저장(첫 질문이면 제목 갱신) → AI 호출·token 중계 → sources 재검증 후 중계
- * → done 수신 시 ASSISTANT 저장 → done(messageId) 전송.
- * AI 오류·타임아웃·done 없이 끊김 → error(AI_UNAVAILABLE) 전송, ASSISTANT는 저장하지 않는다.
+ * 처리 순서: 소유자 검증 → AI 호출·token 중계 → sources 재검증 후 중계
+ * → done 수신 시 USER·ASSISTANT를 한 트랜잭션으로 저장(첫 질문이면 제목 갱신) → done(messageId) 전송.
+ * AI 오류·타임아웃·done 없이 끊김·저장 실패 → error(AI_UNAVAILABLE) 전송, 질문·답변 모두 저장하지 않는다.
  */
 @Slf4j
 @Service
@@ -81,19 +82,14 @@ public class ChatStreamService {
     void stream(AuthMember me, Long sessionId, String rawQuestion, SseEmitter emitter) {
         String question = rawQuestion.strip();
 
-        // ① 소유자 검증 + 이전 대화(최근 6개) + USER 저장 + 제목 갱신 — 짧은 트랜잭션
+        // ① 소유자 검증 + 이전 대화(최근 6개) — 저장은 done 수신 후 saveExchange에서 한 번에 한다
         Prepared prepared = tx.execute(status -> {
             ChatSession session = sessionRepository.findByIdAndMemberId(sessionId, me.id())
                     .orElseThrow(() -> {
-                        // TODO(A): AuditLogger 머지 후 권한 밖 세션 접근 감사 로그로 교체
                         log.warn("[AUDIT] SESSION_NOT_FOUND_OR_DENIED memberUuid={} sessionId={}", me.uuid(), sessionId);
                         return new BusinessException(ChatErrorCode.SESSION_NOT_FOUND);
                     });
-            List<HistoryItem> history = recentHistory(session.getId());
-            messageRepository.save(ChatMessage.user(session, question));
-            session.updateTitleIfDefault(question);
-            session.touch();
-            return new Prepared(session.getId(), history);
+            return new Prepared(session.getId(), recentHistory(session.getId()));
         });
 
         // ② 권한 필터는 DB 회원 정보로만 계산 (요청 본문 값 사용 안 함)
@@ -109,7 +105,7 @@ public class ChatStreamService {
                 .take(streamTimeout)                                                          // 전체 120초
                 .publishOn(Schedulers.boundedElastic())
                 .subscribe(
-                        ev -> handle(me, prepared.sessionId(), ev, answer, sources, finished, emitter),
+                        ev -> handle(me, prepared.sessionId(), question, ev, answer, sources, finished, emitter),
                         err -> {
                             log.warn("AI 채팅 스트림 오류 sessionId={} reason={}", prepared.sessionId(), err.toString());
                             if (finished.compareAndSet(false, true)) {
@@ -123,7 +119,7 @@ public class ChatStreamService {
                             }
                         });
 
-        // 클라이언트 연결 종료·타임아웃 시 AI 스트림도 끊는다 (불완전한 답변은 저장하지 않음)
+        // 클라이언트 연결 종료·타임아웃 시 AI 스트림도 끊는다 (질문·답변 모두 저장하지 않음)
         emitter.onTimeout(() -> {
             subscription.dispose();
             if (finished.compareAndSet(false, true)) {
@@ -134,7 +130,7 @@ public class ChatStreamService {
         emitter.onCompletion(subscription::dispose);
     }
 
-    private void handle(AuthMember me, Long sessionId, AiChatEvent ev, StringBuilder answer,
+    private void handle(AuthMember me, Long sessionId, String question, AiChatEvent ev, StringBuilder answer,
                         AtomicReference<List<SourceDto>> sources, AtomicBoolean finished, SseEmitter emitter) {
         if (finished.get()) {
             return;
@@ -158,7 +154,15 @@ public class ChatStreamService {
                     if (!finished.compareAndSet(false, true)) {
                         return;
                     }
-                    Long messageId = saveAssistant(sessionId, answer.toString(), sources.get());
+                    Long messageId;
+                    try {
+                        messageId = saveExchange(sessionId, question, answer.toString(), sources.get());
+                    } catch (RuntimeException e) {
+                        // finished가 이미 true라 아래 공통 catch로는 닫히지 않으므로 여기서 직접 error를 보내고 닫는다
+                        log.error("질문·답변 저장 실패 sessionId={} reason={}", sessionId, e.toString());
+                        sendErrorAndComplete(emitter);
+                        return;
+                    }
                     send(emitter, AiChatEvent.DONE, Map.of("messageId", messageId));
                     emitter.complete();
                 }
@@ -171,10 +175,16 @@ public class ChatStreamService {
                 default -> log.debug("알 수 없는 AI 이벤트 무시 event={}", ev.event());
             }
         } catch (IOException e) {
-            // 클라이언트가 연결을 끊음 → 더 보낼 곳이 없으므로 종료 (ASSISTANT 미저장)
+            // 클라이언트가 연결을 끊음 → 더 보낼 곳이 없으므로 종료 (저장 안 함)
             log.info("클라이언트 연결 종료 sessionId={}", sessionId);
             finished.set(true);
             emitter.completeWithError(e);
+        } catch (JacksonException e) {
+            // AI가 보낸 data가 JSON 형식이 아님 (Jackson 3은 unchecked 예외라 RuntimeException보다 먼저 잡는다)
+            log.warn("AI 이벤트 JSON 파싱 실패 sessionId={} event={}", sessionId, ev.event());
+            if (finished.compareAndSet(false, true)) {
+                sendErrorAndComplete(emitter);
+            }
         } catch (RuntimeException e) {
             log.warn("AI 이벤트 처리 실패 sessionId={} event={} reason={}", sessionId, ev.event(), e.toString());
             if (finished.compareAndSet(false, true)) {
@@ -183,25 +193,21 @@ public class ChatStreamService {
         }
     }
 
-    /** ASSISTANT 저장 + 세션 updatedAt 갱신. 저장된 messageId를 done에 붙인다 */
-    private Long saveAssistant(Long sessionId, String answer, List<SourceDto> sources) {
-        String sourcesJson;
-        try {
-            sourcesJson = AiJson.MAPPER.writeValueAsString(sources);
-        } catch (Exception e) {
-            sourcesJson = "[]";
-        }
-        final String finalSourcesJson = sourcesJson;
+    /** USER·ASSISTANT 저장 + 첫 질문이면 제목 갱신 + updatedAt 갱신 (한 트랜잭션, 실패 시 모두 롤백) */
+    private Long saveExchange(Long sessionId, String question, String answer, List<SourceDto> sources) {
+        String sourcesJson = AiJson.MAPPER.writeValueAsString(sources);
         return tx.execute(status -> {
             ChatSession session = sessionRepository.findById(sessionId)
                     .orElseThrow(() -> new IllegalStateException("세션이 사라졌습니다 sessionId=" + sessionId));
-            ChatMessage saved = messageRepository.save(ChatMessage.assistant(session, answer, finalSourcesJson));
+            messageRepository.save(ChatMessage.user(session, question));
+            ChatMessage saved = messageRepository.save(ChatMessage.assistant(session, answer, sourcesJson));
+            session.updateTitleIfDefault(question);
             session.touch();
             return saved.getId();
         });
     }
 
-    /** 이번 질문 저장 전의 최근 6개를 시간순으로 (AI 명세 4.2 history) */
+    /** 이번 질문 이전의 최근 6개를 시간순으로 (AI 명세 4.2 history) */
     private List<HistoryItem> recentHistory(Long sessionId) {
         List<ChatMessage> latest = new ArrayList<>(messageRepository.findTop6BySessionIdOrderByIdDesc(sessionId));
         Collections.reverse(latest);

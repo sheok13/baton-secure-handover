@@ -70,7 +70,12 @@ export default function UploadModal({ onClose, onUploaded }) {
         className="flex w-full max-w-md flex-col gap-3 rounded border bg-gray-800 p-6"
       >
         <h2 className="text-lg font-bold">문서 올리기</h2>
-        <input type="file" accept=".pdf,.docx" onChange={handleFileChange} />
+                <input
+          type="file"
+          accept=".pdf,.docx"
+          onChange={handleFileChange}
+          className="text-sm file:mr-3 file:cursor-pointer file:rounded file:border file:px-3 file:py-1 file:bg-transparent hover:file:bg-gray-700"
+        />
         <input
           className="rounded border p-2"
           maxLength={200}

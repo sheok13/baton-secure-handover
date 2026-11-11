@@ -58,7 +58,6 @@ public class DocumentService {
     /** GET /documents/{id}/download — 권한 확인 + 감사 로그. 파일은 보내지 않는다 (원본 미보관) */
     public DocumentDownloadResponse download(AuthMember me, Long id) {
         Document doc = findReadable(me, id);
-        // TODO(A): AuditLogger 머지 후 auditLogger.docDownload(me.uuid(), doc.getId())로 교체
         log.info("[AUDIT] DOC_DOWNLOAD memberUuid={} docId={}", me.uuid(), doc.getId());
         return DocumentDownloadResponse.from(doc);
     }
@@ -68,7 +67,6 @@ public class DocumentService {
         Document doc = documentRepository.findWithOwnerById(id).orElse(null);
         if (doc == null || !accessPolicy.canRead(me.department(), me.rank(), doc)) {
             if (doc != null) {
-                // TODO(A): AuditLogger 머지 후 권한 밖 접근 감사 로그로 교체 (서버 로그에만 남고 응답은 404)
                 log.warn("[AUDIT] DOC_ACCESS_DENIED memberUuid={} docId={}", me.uuid(), id);
             }
             throw new BusinessException(DocumentErrorCode.DOC_NOT_FOUND);

@@ -6,7 +6,7 @@ RUN ./gradlew clean build -x test
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 RUN useradd -m batonapp
-COPY --from=build /app/build/libs/*.jar app.jar
+COPY --from=build /app/build/libs/app.jar app.jar
 RUN chown batonapp:batonapp app.jar
 USER batonapp
 EXPOSE 8080

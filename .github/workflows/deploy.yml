@@ -36,11 +36,25 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
 
-      - name: Build Backend JAR
+      # 테스트 실패 시 여기서 중단 → 이미지가 빌드·푸시되지 않음
+      # 단위 테스트는 Mock 기반이라 DB 없이 실행된다 (BatonApplicationTests는 @Disabled)
+      - name: Run Backend Tests
         run: |
           cd backend
           chmod +x ./gradlew
-          ./gradlew clean build -x test
+          ./gradlew test
+
+      - name: Upload Test Report (실패 시)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: backend/build/reports/tests/test
+
+      - name: Build Backend JAR
+        run: |
+          cd backend
+          ./gradlew clean build -x test   # 테스트는 위 단계에서 이미 통과
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2

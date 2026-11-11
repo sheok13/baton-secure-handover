@@ -4,6 +4,7 @@ import com.baton.auth.dto.LoginRequest;
 import com.baton.auth.dto.LoginResponse;
 import com.baton.auth.dto.LoginResult;
 import com.baton.auth.dto.MemberInfoResponse;
+import com.baton.common.BusinessException;
 import com.baton.common.exception.AccountLockedException;
 import com.baton.common.exception.LoginFailedException;
 import com.baton.member.entity.Member;
@@ -48,8 +49,11 @@ public class AuthService {
 
     /**
      * 로그인 인증 처리
+     * 
+     * 비밀번호 불일치(LoginFailedException) 또는 계정 잠금(AccountLockedException) 발생 시에도
+     * failed_login_count 및 locked_until 변경 사항이 DB에 정상 커밋되도록 noRollbackFor 설정.
      */
-    @Transactional
+    @Transactional(noRollbackFor = {LoginFailedException.class, AccountLockedException.class})
     public LoginResult login(LoginRequest request) {
         String email = request.getEmail().strip();
         String maskedEmail = maskEmail(email);
@@ -65,7 +69,7 @@ public class AuthService {
         }
 
         Member member = memberOpt.get();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(KST);
 
         // 2. 계정 잠금 상태 확인
         if (member.isLocked(now)) {
@@ -77,6 +81,7 @@ public class AuthService {
         // 3. 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), member.getPasswordHash())) {
             int remainingAttempts = member.recordLoginFailure(MAX_ATTEMPTS, LOCK_DURATION_MINUTES, now);
+            memberRepository.save(member);
 
             if (remainingAttempts == 0) {
                 OffsetDateTime lockedUntilKst = member.getLockedUntil().atZone(KST).toOffsetDateTime();
@@ -109,15 +114,16 @@ public class AuthService {
     /**
      * 토큰 재발급 (POST /api/auth/refresh)
      * Refresh Token 쿠키를 읽어 새 Access Token 및 새 Refresh Token 발급 (Rotation)
+     * 재사용 감지 시 일괄 폐기 트랜잭션이 롤백되지 않도록 noRollbackFor 적용.
      */
-    @Transactional
+    @Transactional(noRollbackFor = {BusinessException.class})
     public LoginResult reissue(String rawRefreshToken) {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
             throw new com.baton.common.BusinessException(com.baton.auth.exception.AuthErrorCode.AUTH_REFRESH_INVALID);
         }
 
         String newRefreshToken = jwtProvider.createRefreshToken();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(KST);
         LocalDateTime newExpiresAt = now.plusSeconds(jwtProvider.getRefreshExpirationMs() / 1000);
 
         Member member = refreshTokenService.validateAndRotate(rawRefreshToken, newRefreshToken, newExpiresAt);
