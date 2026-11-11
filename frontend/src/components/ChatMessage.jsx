@@ -24,13 +24,13 @@ export default function ChatMessage({ message, onRetry }) {
           {isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : (
-            <ReactMarkdown components={mdComponents}>
+            <ReactMarkdown components={markdownComponents}>
               {message.content ?? ''}
             </ReactMarkdown>
           )}
 
           {message.error && (
-            <div className="mt-2 text-sm text-danger">
+            <div role="alert" className="mt-2 text-sm text-danger">
               <p>{message.error}</p>
               {onRetry && (
                 <button
@@ -47,12 +47,10 @@ export default function ChatMessage({ message, onRetry }) {
 
         {message.streaming && <span className="text-[13px] text-sub">답변 작성 중…</span>}
 
-        {message.sources?.length > 0 && (
+        {!isUser && message.sources?.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[13px] text-sub">출처</span>
-            {message.sources.map((s, i) => (
-              <SourceChip key={`${s.docId}-${s.page ?? 'na'}-${i}`} source={s} />
-            ))}
+            <span className="text-[13px] text-sub">참고 문서</span>
+            <SourceChip source={message.sources[0]} />
           </div>
         )}
       </div>
