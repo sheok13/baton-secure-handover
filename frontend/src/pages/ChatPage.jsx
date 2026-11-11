@@ -19,10 +19,16 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const lastQuestion = useRef('')
+  const bottomRef = useRef(null)
 
   useEffect(() => {
     listSessions().then(setSessions)
   }, [])
+
+  // 새 메시지·스트리밍 글자가 늘어날 때 맨 아래로 따라간다
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: 'end' })
+  }, [messages])
 
   function handleSelect(id) {
     if (streaming) return // 답변이 오는 중에는 대화 전환 막기
@@ -118,6 +124,7 @@ export default function ChatPage() {
               onRetry={m.error && i === messages.length - 1 && !streaming ? handleRetry : undefined}
             />
           ))}
+          <div ref={bottomRef} />
         </section>
         <form onSubmit={handleSend} className="flex gap-2 border-t border-gray-700 p-3">
           <input
