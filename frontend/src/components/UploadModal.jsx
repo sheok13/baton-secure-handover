@@ -63,50 +63,121 @@ export default function UploadModal({ onClose, onUploaded }) {
     }
   }
 
+  const isStaff = member?.rank === RANK.STAFF
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/60">
+    <div className="fixed inset-0 z-10 flex items-center justify-center bg-ink/45 p-6">
       <form
         onSubmit={handleSubmit}
-        className="flex w-full max-w-md flex-col gap-3 rounded border bg-gray-800 p-6"
+        className="flex w-full max-w-[560px] flex-col gap-5 rounded-xl bg-white p-7"
       >
-        <h2 className="text-lg font-bold">문서 올리기</h2>
-                <input
-          type="file"
-          accept=".pdf,.docx"
-          onChange={handleFileChange}
-          className="text-sm file:mr-3 file:cursor-pointer file:rounded file:border file:px-3 file:py-1 file:bg-transparent hover:file:bg-gray-700"
-        />
-        <input
-          className="rounded border p-2"
-          maxLength={200}
-          placeholder="문서명"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <select
-          className="rounded border bg-gray-800 p-2"
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
-        >
-          <option value={member?.department}>{DEPT_LABEL[member?.department]}</option>
-          <option value={DEPT.ALL}>{DEPT_LABEL[DEPT.ALL]}</option>
-        </select>
-        <select
-          className="rounded border bg-gray-800 p-2"
-          value={minRank}
-          onChange={(e) => setMinRank(e.target.value)}
-        >
-          <option value={RANK.STAFF}>전체</option>
-          <option value={RANK.LEADER} disabled={member?.rank === RANK.STAFF}>
-            팀장만
-          </option>
-        </select>
-        {error && <p className="text-sm text-red-400">{error}</p>}
-        <div className="flex justify-end gap-2">
-          <button type="button" className="rounded border px-3 py-1" onClick={onClose}>
+        <h2 className="text-[22px] font-bold">문서 올리기</h2>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium">파일</span>
+          <div className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-field bg-white py-1.5 pl-3.5 pr-2">
+            <span className={`min-w-0 truncate text-sm ${file ? 'text-ink' : 'text-[#6B7488]'}`}>
+              {file ? file.name : '선택된 파일 없음'}
+            </span>
+            <label className="inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-lg border border-brand px-4 text-sm font-medium text-brand hover:bg-brand-soft">
+              파일 선택
+              <input
+                type="file"
+                accept=".pdf,.docx"
+                onChange={handleFileChange}
+                className="sr-only"
+              />
+            </label>
+          </div>
+          <span className="text-[13px] text-sub">PDF, DOCX · 최대 10MB</span>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="title" className="text-sm font-medium">
+            문서명
+          </label>
+          <input
+            id="title"
+            className="h-12 rounded-lg border border-field px-3.5 text-[15px]"
+            maxLength={200}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="dept" className="text-sm font-medium">
+            부서
+          </label>
+          <select
+            id="dept"
+            className="h-12 rounded-lg border border-field bg-white px-3.5 text-[15px]"
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+          >
+            <option value={member?.department}>{DEPT_LABEL[member?.department]}</option>
+            <option value={DEPT.ALL}>{DEPT_LABEL[DEPT.ALL]}</option>
+          </select>
+        </div>
+
+        <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
+          <legend className="mb-2 p-0 text-sm font-medium">공개 직급</legend>
+          <div className="flex gap-2">
+            <label
+              className={`flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg text-sm ${
+                minRank === RANK.STAFF
+                  ? 'border-2 border-brand bg-brand-soft font-medium'
+                  : 'border border-line text-[#6B7488]'
+              }`}
+            >
+              <input
+                type="radio"
+                name="rank"
+                checked={minRank === RANK.STAFF}
+                onChange={() => setMinRank(RANK.STAFF)}
+              />{' '}
+              전체
+            </label>
+            <label
+              className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg text-sm ${
+                isStaff ? 'border border-line text-[#6B7488]' : 'cursor-pointer'
+              } ${
+                !isStaff && minRank === RANK.LEADER
+                  ? 'border-2 border-brand bg-brand-soft font-medium'
+                  : !isStaff
+                    ? 'border border-line'
+                    : ''
+              }`}
+            >
+              <input
+                type="radio"
+                name="rank"
+                disabled={isStaff}
+                checked={minRank === RANK.LEADER}
+                onChange={() => setMinRank(RANK.LEADER)}
+              />{' '}
+              팀장만
+            </label>
+          </div>
+          {isStaff && (
+            <span className="text-[13px] text-sub">사원 계정은 "전체"로만 올릴 수 있어요.</span>
+          )}
+        </fieldset>
+
+        {error && <p className="text-sm text-danger">{error}</p>}
+
+        <div className="flex flex-wrap justify-end gap-3">
+          <button
+            type="button"
+            className="inline-flex min-h-12 items-center rounded-lg border border-field bg-white px-5.5 text-[15px] font-medium hover:bg-bg"
+            onClick={onClose}
+          >
             취소
           </button>
-          <button className="rounded border px-3 py-1" disabled={loading}>
+          <button
+            className="inline-flex min-h-12 items-center rounded-lg bg-brand px-5.5 text-[15px] font-medium text-white hover:bg-brand-dark disabled:opacity-60"
+            disabled={loading}
+          >
             {loading ? '처리 중...' : '올리기'}
           </button>
         </div>

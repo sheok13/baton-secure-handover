@@ -104,17 +104,17 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex min-h-[70vh]">
+    <div className="flex h-[calc(100vh-130px)] min-h-[560px] flex-wrap gap-4">
       <ChatSidebar
         sessions={sessions}
         selectedId={selectedId}
         onSelect={handleSelect}
         onNew={handleNew}
       />
-      <div className="flex flex-1 flex-col">
-        <section className="flex-1 space-y-3 overflow-y-auto p-4">
+      <section className="flex min-w-0 flex-[1_1_480px] flex-col rounded-xl border border-line bg-white">
+        <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-6">
           {selectedId === null && messages.length === 0 && (
-            <p className="text-gray-500">질문을 입력하면 새 대화가 시작됩니다.</p>
+            <p className="text-sub">질문을 입력하면 새 대화가 시작됩니다.</p>
           )}
           {loading && <LoadingSpinner />}
           {messages.map((m, i) => (
@@ -125,21 +125,28 @@ export default function ChatPage() {
             />
           ))}
           <div ref={bottomRef} />
-        </section>
-        <form onSubmit={handleSend} className="flex gap-2 border-t border-gray-700 p-3">
+        </div>
+        <form onSubmit={handleSend} className="flex items-center gap-3 border-t border-line px-6 py-4">
+          <label htmlFor="ask" className="sr-only">
+            질문 입력
+          </label>
           <input
-            className="flex-1 rounded border border-gray-600 bg-transparent p-2"
+            id="ask"
+            className="h-12 min-w-0 flex-1 rounded-lg border border-field px-4 text-[15px]"
             placeholder="질문을 입력하세요"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={streaming}
             maxLength={1000}
           />
-          <button className="rounded border px-4 py-2" disabled={streaming}>
+          <button
+            className="min-h-12 shrink-0 rounded-lg bg-brand px-5.5 text-[15px] font-medium text-white hover:bg-brand-dark disabled:opacity-60"
+            disabled={streaming}
+          >
             보내기
           </button>
         </form>
-      </div>
+      </section>
     </div>
   )
 }

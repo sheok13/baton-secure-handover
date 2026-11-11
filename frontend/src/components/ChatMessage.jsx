@@ -14,40 +14,47 @@ export default function ChatMessage({ message, onRetry }) {
   const isUser = message.role === 'USER';
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className="max-w-[80%] rounded-lg bg-gray-800 px-3 py-2 text-left">
-        {/* 사용자 글은 그대로, AI 답변만 마크다운으로 해석 */}
-        {isUser ? (
-          <p className="whitespace-pre-wrap">{message.content}</p>
-        ) : (
-          <ReactMarkdown components={mdComponents}>
-            {message.content ?? ''}
-          </ReactMarkdown>
-        )}
+      <div className={`flex flex-col gap-2 ${isUser ? 'max-w-[70%]' : 'max-w-[80%]'}`}>
+        <div
+          className={`px-4 py-3 text-left text-[15px] ${
+            isUser
+              ? 'rounded-[16px_16px_4px_16px] bg-brand leading-relaxed text-white'
+              : 'rounded-[16px_16px_16px_4px] bg-bubble leading-[1.7] text-ink'
+          }`}
+        >
+          {/* 사용자 글은 그대로, AI 답변만 마크다운으로 해석 */}
+          {isUser ? (
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          ) : (
+            <ReactMarkdown components={mdComponents}>
+              {message.content ?? ''}
+            </ReactMarkdown>
+          )}
 
-        {message.streaming && (
-          <p className="mt-1 text-sm text-gray-400">답변 작성 중…</p>
-        )}
+          {message.error && (
+            <div className="mt-2 text-sm text-danger">
+              <p>{message.error}</p>
+              {onRetry && (
+                <button
+                  type="button"
+                  className="mt-1 min-h-9 rounded-lg border border-field bg-white px-3 text-ink hover:bg-bg"
+                  onClick={onRetry}
+                >
+                  다시 시도
+                </button>
+              )}
+            </div>
+          )}
+        </div>
 
-        {message.error && (
-          <div className="mt-2 text-sm text-red-400">
-            <p>{message.error}</p>
-            {onRetry && (
-              <button
-                type="button"
-                className="mt-1 rounded border px-2 py-1"
-                onClick={onRetry}
-              >
-                다시 시도
-              </button>
-            )}
-          </div>
-        )}
+        {message.streaming && <span className="text-[13px] text-sub">답변 작성 중…</span>}
 
         {message.sources?.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[13px] text-sub">출처</span>
             {message.sources.map((s, i) => (
               <SourceChip key={`${s.docId}-${s.page ?? 'na'}-${i}`} source={s} />
-                          ))}
+            ))}
           </div>
         )}
       </div>

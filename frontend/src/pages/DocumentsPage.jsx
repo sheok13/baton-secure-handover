@@ -45,47 +45,55 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">문서함</h1>
-        <button
-          className="rounded border px-3 py-1"
-          onClick={() => setUploadOpen(true)}
-        >
-          문서 올리기
-        </button>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-[26px] font-bold">문서함</h1>
+        <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-3">
+          <input
+            type="search"
+            aria-label="문서 검색"
+            className="h-11 w-70 rounded-lg border border-field bg-white px-3.5 text-sm"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="제목으로 검색"
+          />
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center rounded-lg bg-brand px-5 text-[15px] font-medium text-white hover:bg-brand-dark"
+            onClick={() => setUploadOpen(true)}
+          >
+            + 올리기
+          </button>
+        </form>
       </div>
 
-      <form onSubmit={handleSearch} className="mb-4 flex gap-2">
-        <input
-          className="flex-1 rounded border p-2"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder="문서명 검색"
-        />
-        <button className="rounded border px-4">검색</button>
-      </form>
-
       {loading ? (
-        <p className="py-8 text-center text-gray-500">불러오는 중...</p>
+        <p className="py-8 text-center text-sub">불러오는 중...</p>
       ) : (
         <DocumentTable documents={data.content} onDownload={handleDownload} />
       )}
 
-      <div className="mt-4 flex justify-center gap-2">
+      <div className="flex items-center justify-center gap-4 text-sm text-[#3A4458]">
         <button
-          className="rounded border px-3 py-1 disabled:opacity-40"
+          type="button"
+          aria-label="이전 페이지"
+          className="min-h-11 min-w-11 rounded-lg border border-field bg-white disabled:opacity-40"
           disabled={page === 0}
           onClick={() => setPage(page - 1)}
         >
-          이전
+          ‹
         </button>
+        <span>
+          {page + 1} / {Math.max(data.totalPages, 1)} 페이지
+        </span>
         <button
-          className="rounded border px-3 py-1 disabled:opacity-40"
+          type="button"
+          aria-label="다음 페이지"
+          className="min-h-11 min-w-11 rounded-lg border border-field bg-white disabled:opacity-40"
           disabled={page + 1 >= data.totalPages}
           onClick={() => setPage(page + 1)}
         >
-          다음
+          ›
         </button>
       </div>
 
