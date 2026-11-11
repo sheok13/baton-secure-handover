@@ -3,14 +3,14 @@ package com.baton.auth.dto;
 import com.baton.common.ApiResponse;
 import com.baton.member.entity.Department;
 import com.baton.member.entity.Rank;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -26,7 +26,7 @@ class LoginDtoTest {
     @BeforeEach
     void setUp() {
         validator = Validation.buildDefaultValidatorFactory().getValidator();
-        objectMapper = Jackson2ObjectMapperBuilder.json().build();
+        objectMapper = JsonMapper.builder().build();
     }
 
     @Test
