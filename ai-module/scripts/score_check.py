@@ -7,11 +7,13 @@ import sys
 import sys
 from pathlib import Path
 
-from app.core.config import get_settings
-from app.core.vectorstore import get_vectorstore
 
 # 파일 경로로 실행해도 app 패키지를 찾도록 ai-module 폴더를 검색 경로에 추가
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from app.core.config import get_settings
+from app.core.vectorstore import get_vectorstore
+
 
 # 권한 테스트와 같은 계정별 필터 (Backend AiFilter 규칙)
 ACCOUNTS = {
