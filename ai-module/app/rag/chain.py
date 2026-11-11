@@ -17,6 +17,7 @@ from app.api.schemas import HistoryMessage
 from app.core.config import get_settings
 from app.core.constants import META_TITLE, META_PAGE
 from app.core.models import get_llm
+from app.rag.answer_format import strip_source_labels
 from app.prompts.system_prompt import (
     CONTEXT_TEMPLATE,
     NO_ANSWER_MESSAGE,
@@ -117,6 +118,9 @@ async def stream_answer(
 
     chain = prompt | get_llm() | StrOutputParser()
 
+    # 출처 표기가 토큰 경계에 걸려도 노출되지 않도록 줄 단위로 정리합니다.
+    titles = list({doc.metadata[META_TITLE] for doc in docs})
+    pending = ""
     # 모델 오류는 D의 라우터가 SSE error로 처리하도록 전달
     async for text in chain.astream({
         "history": history_messages,
@@ -124,4 +128,13 @@ async def stream_answer(
         "question": question,
     }):
         if text:
-            yield text
+            pending += text
+            while "\n" in pending:
+                line, pending = pending.split("\n", 1)
+                cleaned = strip_source_labels(line, titles).rstrip()
+                if cleaned:
+                    yield cleaned + "\n"
+    if pending:
+        cleaned = strip_source_labels(pending, titles).rstrip()
+        if cleaned:
+            yield cleaned

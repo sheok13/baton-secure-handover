@@ -5,6 +5,7 @@ import com.baton.common.exception.LoginFailedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -67,6 +68,16 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(CommonErrorCode.VALIDATION_FAILED, errorMessage));
+    }
+
+    /**
+     * 잘못된 HTTP 요청 본문 형식 (400 Bad Request, 깨진 JSON 파싱 실패 등)
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        log.warn("요청 본문 파싱 실패 (잘못된 JSON 형식): {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(CommonErrorCode.VALIDATION_FAILED, "요청 본문 형식이 올바르지 않습니다."));
     }
 
     /**
