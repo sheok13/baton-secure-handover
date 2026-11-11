@@ -19,6 +19,9 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const lastQuestion = useRef('')
+  const [pageError, setPageError] = useState('')
+  const sending = useRef(false)
+  const selection = useRef(0)
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -129,7 +132,7 @@ export default function ChatPage() {
           {selectedId === null && messages.length === 0 && (
             <p className="text-sub">질문을 입력하면 새 대화가 시작됩니다.</p>
           )}
-          {pageError && <p role="alert" className="text-red-400">{pageError}</p>}
+          {pageError && <p role="alert" className="text-danger">{pageError}</p>}
           {loading && <LoadingSpinner />}
           {messages.map((m, i) => (
             <ChatMessage
@@ -155,7 +158,7 @@ export default function ChatPage() {
           />
           <button
             className="min-h-12 shrink-0 rounded-lg bg-brand px-5.5 text-[15px] font-medium text-white hover:bg-brand-dark disabled:opacity-60"
-            disabled={streaming}
+            disabled={streaming || loading}
           >
             보내기
           </button>
