@@ -6,8 +6,10 @@ import com.baton.common.exception.LoginFailedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -63,6 +65,21 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getError().getCode()).isEqualTo("AUTH_TOKEN_INVALID");
         assertThat(response.getBody().getError().getMessage()).isEqualTo("토큰이 만료되었습니다.");
+    }
+
+    @Test
+    @DisplayName("HttpMessageNotReadableException 발생 시 400 VALIDATION_FAILED 반환 (깨진 JSON)")
+    void handleHttpMessageNotReadable() {
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException(
+                "JSON parse error: Unexpected character", (HttpInputMessage) null);
+
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleHttpMessageNotReadable(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().isSuccess()).isFalse();
+        assertThat(response.getBody().getError().getCode()).isEqualTo("VALIDATION_FAILED");
+        assertThat(response.getBody().getError().getMessage()).isEqualTo("요청 본문 형식이 올바르지 않습니다.");
     }
 
     @Test

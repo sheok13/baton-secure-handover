@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Refresh Token 관리 서비스 (A 소유).
@@ -27,6 +28,8 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RefreshTokenService {
+
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -42,12 +45,14 @@ public class RefreshTokenService {
 
     /**
      * 리프레시 토큰 검증 및 교체 (Rotation)
+     * 보안: 재사용 감지 시 탈취로 간주하고 일괄 폐기(revokeAllByMemberId)를 수행하며,
+     * BusinessException 발생 시에도 폐기 트랜잭션이 롤백되지 않도록 noRollbackFor 적용.
      * @return 토큰 소유 회원
      */
-    @Transactional
+    @Transactional(noRollbackFor = BusinessException.class)
     public Member validateAndRotate(String rawToken, String newRawToken, LocalDateTime newExpiresAt) {
         String tokenHash = hashToken(rawToken);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(KST);
 
         RefreshToken token = refreshTokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.AUTH_REFRESH_INVALID));
@@ -56,8 +61,9 @@ public class RefreshTokenService {
         if (token.isRevoked()) {
             log.warn("[AUDIT] REFRESH_TOKEN_REUSE_DETECTED memberId={} tokenHash={}",
                     token.getMember().getId(), tokenHash);
-            // 해당 회원의 모든 활성 리프레시 토큰 일괄 폐기
+            // 해당 회원의 모든 활성 리프레시 토큰 일괄 폐기 (롤백되지 않음)
             refreshTokenRepository.revokeAllByMemberId(token.getMember().getId(), now);
+            refreshTokenRepository.flush();
             throw new BusinessException(AuthErrorCode.AUTH_REFRESH_INVALID);
         }
 
@@ -85,7 +91,7 @@ public class RefreshTokenService {
         }
         String tokenHash = hashToken(rawToken);
         refreshTokenRepository.findByTokenHash(tokenHash)
-                .ifPresent(token -> token.revoke(LocalDateTime.now()));
+                .ifPresent(token -> token.revoke(LocalDateTime.now(KST)));
     }
 
     /**
