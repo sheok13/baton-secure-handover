@@ -1,7 +1,8 @@
-export default function ChatSidebar({ sessions, selectedId, onSelect }) {
+export default function ChatSidebar({ sessions, selectedId, onSelect, onNew }) {
   return (
     <aside className="w-64 shrink-0 border-r border-gray-700 p-3">
       <h2 className="mb-2 text-sm font-bold text-gray-300">대화 목록</h2>
+      <button type="button" onClick={onNew} className="mb-2 w-full rounded bg-blue-600 px-2 py-1 text-sm text-white">새 대화</button>
       {sessions.length === 0 && (
         <p className="text-sm text-gray-500">대화가 없습니다.</p>
       )}

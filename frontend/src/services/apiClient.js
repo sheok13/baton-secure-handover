@@ -1,14 +1,14 @@
 import { useAuthStore } from '../stores/authStore.js'
 
-const BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+export const BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 
 // 실패 응답을 던질 객체로 변환
-function toError(status, body) {
+export function toError(status, body) {
   return { status, ...body?.error }
 }
 
 // 본문을 JSON으로 읽되, 실패하면 null (502 등은 본문이 HTML이거나 비어 있음)
-async function readJson(res) {
+export async function readJson(res) {
   try {
     return await res.json()
   } catch {
