@@ -35,10 +35,10 @@ spec:
                   name: baton-env
                   key: MARIADB_PASSWORD
           readinessProbe:
-            exec:
-              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 5
+            periodSeconds: 5
           volumeMounts:
             - name: db-data
               mountPath: /var/lib/mysql
