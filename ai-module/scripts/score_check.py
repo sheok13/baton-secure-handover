@@ -4,6 +4,9 @@
 """
 import sys
 
+import sys
+from pathlib import Path
+
 from app.core.config import get_settings
 from app.core.vectorstore import get_vectorstore
 
