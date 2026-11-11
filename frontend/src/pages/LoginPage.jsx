@@ -44,26 +44,65 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto mt-24 max-w-sm p-6">
-      <h1 className="mb-6 text-2xl font-bold">로그인</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input
-          className="rounded border p-2"
-          type="email"
-          placeholder="이메일"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="rounded border p-2"
-          type="password"
-          placeholder="비밀번호"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button className="rounded bg-gray-800 p-2 text-white">로그인</button>
-      </form>
+    <div className="flex min-h-screen flex-wrap items-stretch bg-bg">
+      <div className="flex min-w-0 flex-[1_1_420px] flex-col justify-between gap-8 bg-ink p-16 text-white">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-brand">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M5 4h10l4 4v12H5z" />
+              <path d="M9 13h6M9 17h4" />
+            </svg>
+          </div>
+          <span className="text-xl font-bold">바톤</span>
+        </div>
+        <div className="flex flex-col gap-4">
+          <h1 className="text-[40px] font-bold leading-tight">
+            문서는 한곳에,
+            <br />
+            답변은 내 권한 안에서
+          </h1>
+          <p className="text-base leading-relaxed text-[#C9D2E3]">
+            부서와 직급별로 문서를 올리고, 내가 볼 수 있는 문서만 근거로 AI에게 물어보세요.
+          </p>
+        </div>
+        <div className="text-[13px] text-[#A9B4CA]">Rookies 6기 미니 프로젝트</div>
+      </div>
+      <div className="flex min-w-0 flex-[1_1_480px] items-center justify-center p-12">
+        <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-5">
+          <div className="flex flex-col gap-1.5">
+            <h2 className="text-[26px] font-bold">로그인</h2>
+            <p className="text-sm text-sub">계정으로 로그인하세요</p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="email" className="text-sm font-medium">
+              이메일
+            </label>
+            <input
+              id="email"
+              className="h-12 rounded-lg border border-field bg-white px-3.5 text-[15px]"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="pw" className="text-sm font-medium">
+              비밀번호
+            </label>
+            <input
+              id="pw"
+              className="h-12 rounded-lg border border-field bg-white px-3.5 text-[15px]"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            {error && <span className="text-[13px] text-danger">{error}</span>}
+          </div>
+          <button className="flex h-12 items-center justify-center rounded-lg bg-brand text-base font-medium text-white hover:bg-brand-dark">
+            로그인
+          </button>
+        </form>
+      </div>
     </div>
   )
 }
