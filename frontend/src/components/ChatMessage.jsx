@@ -1,13 +1,11 @@
 import ReactMarkdown from 'react-markdown';
 import SourceChip from './SourceChip';
 
-// 마크다운이 만드는 요소별 스타일
-// 이유: Tailwind v4 preflight가 목록의 점·번호와 여백을 지워서 클래스로 다시 줘야 보입니다.
-// 힌트: my-1 / list-disc / list-decimal / pl-5
-const mdComponents = {
-  p: ({ children }) => <p className="my-1">{children}</p>,
-  ul: ({ children }) => <ul className="my-1 list-disc pl-5">{children}</ul>,
-  ol: ({ children }) => <ol className="my-1 list-decimal pl-5">{children}</ol>,
+const markdownComponents = {
+  p: ({ children }) => <p className="my-2 whitespace-pre-wrap">{children}</p>,
+  ul: ({ children }) => <ul className="my-2 list-disc pl-6">{children}</ul>,
+  ol: ({ children }) => <ol className="my-2 list-decimal pl-6">{children}</ol>,
+  li: ({ children }) => <li className="my-1">{children}</li>,
 };
 
 export default function ChatMessage({ message, onRetry }) {
