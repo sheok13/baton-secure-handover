@@ -22,7 +22,10 @@ export default function ChatPage() {
   const bottomRef = useRef(null)
 
   useEffect(() => {
-    listSessions().then(setSessions)
+    let active = true
+    listSessions().then((items) => { if (active) setSessions(items) })
+      .catch(() => { if (active) setPageError('대화 목록을 불러오지 못했습니다. 다시 로그인하거나 새로고침해 주세요.') })
+    return () => { active = false; selection.current += 1 }
   }, [])
 
   // 새 메시지·스트리밍 글자가 늘어날 때 맨 아래로 따라간다
@@ -31,16 +34,24 @@ export default function ChatPage() {
   }, [messages])
 
   function handleSelect(id) {
-    if (streaming) return // 답변이 오는 중에는 대화 전환 막기
+    if (sending.current) return
+    const version = ++selection.current
+    setMessages([])
+    setPageError('')
     setSelectedId(id)
     setLoading(true)
     listMessages(id)
-      .then(setMessages)
-      .finally(() => setLoading(false))
+      .then((items) => { if (version === selection.current) setMessages(items) })
+      .catch(() => { if (version === selection.current) setPageError('대화를 불러오지 못했습니다. 다시 선택해 주세요.') })
+      .finally(() => { if (version === selection.current) setLoading(false) })
   }
 
   function handleNew() {
-    if (streaming) return
+    if (sending.current) return
+    selection.current += 1
+    setLoading(false)
+    setPageError('')
+    setInput('')
     setSelectedId(null)
     setMessages([])
   }
@@ -49,7 +60,8 @@ export default function ChatPage() {
     setMessages((prev) => prev.map((m) => (m.id === id ? fn(m) : m)))
 
   async function sendQuestion(question) {
-    if (streaming) return
+    if (sending.current || loading) return
+    sending.current = true
     lastQuestion.current = question
     setStreaming(true)
 
@@ -84,6 +96,7 @@ export default function ChatPage() {
     } catch (err) {
       fail(err)
     } finally {
+      sending.current = false
       setStreaming(false)
       listSessions().then(setSessions).catch(() => {})
     }
@@ -92,7 +105,7 @@ export default function ChatPage() {
   function handleSend(e) {
     e.preventDefault()
     const question = input.trim()
-    if (!question || streaming) return
+    if (!question || sending.current || loading) return
     setInput('')
     sendQuestion(question)
   }
@@ -116,6 +129,7 @@ export default function ChatPage() {
           {selectedId === null && messages.length === 0 && (
             <p className="text-gray-500">질문을 입력하면 새 대화가 시작됩니다.</p>
           )}
+          {pageError && <p role="alert" className="text-red-400">{pageError}</p>}
           {loading && <LoadingSpinner />}
           {messages.map((m, i) => (
             <ChatMessage
@@ -132,10 +146,10 @@ export default function ChatPage() {
             placeholder="질문을 입력하세요"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            disabled={streaming}
+            disabled={streaming || loading}
             maxLength={1000}
           />
-          <button className="rounded border px-4 py-2" disabled={streaming}>
+          <button className="rounded border px-4 py-2" disabled={streaming || loading}>
             보내기
           </button>
         </form>
