@@ -23,9 +23,13 @@ Get-ChildItem $DIR -File | Where-Object { $_.Extension -in '.pdf', '.docx' } | S
   $hit = $MAP.Keys | Where-Object { $f.BaseName -like "*$_*" } | Select-Object -First 1
   if (-not $hit) { Write-Host "건너뜀 (권한 매핑 없음): $($f.Name)"; return }
   $i++
+  # docId = 파일 이름 앞 번호 (예: 10.외주_... → 10), 제목은 번호를 뗀 이름
+  if ($f.BaseName -notmatch '^(\d+)\.') { Write-Host "건너뜀 (앞 번호 없음): $($f.Name)"; return }
+  $id = [int]$Matches[1]
+  $title = $f.BaseName -replace '^\d+\.', ''
   $dept, $rank = $MAP[$hit]
   $res = curl.exe -s -X POST http://localhost:8000/internal/ingest -H "X-Internal-Api-Key: $KEY" `
-    -F "file=@$($f.FullName)" -F "docId=$i" -F "title=$($f.BaseName)" -F "department=$dept" -F "minRank=$rank"
-  Write-Host "$i  $($f.Name)  [$dept/$rank]  -> $res"
+    -F "file=@$($f.FullName)" -F "docId=$id" -F "title=$title" -F "department=$dept" -F "minRank=$rank"
+  Write-Host "$id  $($f.Name)  [$dept/$rank]  -> $res"
 }
 Write-Host "완료: $i 개 업로드 시도"
