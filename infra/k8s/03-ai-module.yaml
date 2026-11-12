@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: ai-module
-          image: docker.io/library/baton-ai:latest
-          imagePullPolicy: Never
+          image: shyeok13/baton-ai:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           envFrom:
