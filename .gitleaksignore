@@ -1,1 +1,10 @@
+# I-1-01 gitleaks 예외 목록 — 항목별 사유는 보안점검서 I-1-01 참고
+# 형식: 커밋:파일:규칙:줄번호 (커밋·줄이 바뀌면 새 항목이 필요함)
+
+# [테스트 더미 키] ai-module 단위 테스트용 가짜 내부 API 키("test..."), 실제 환경에서 사용하지 않음
 f5b88a9b3844885445a23efa263f23091f066684:ai-module/tests/test_health.py:generic-api-key:3
+8651937461ffa83bf2de1065dc970fccc1236773:ai-module/tests/test_health.py:generic-api-key:4
+dcbaa44abc3892bfb0ebb091184c7368a533af0f:ai-module/tests/test_chat_api.py:generic-api-key:11
+
+# [만료된 시연용 JWT] 2026-11-09 08:45Z 발급, 09:15Z 만료(30분). 점검 문서 예시에 붙여넣었던 값으로 현재 문서에서는 제거됨
+ab942b091b8c5f1515d0de6f66174a5622b9ddc4:docs/9.보안점검결과서.md:jwt:184
