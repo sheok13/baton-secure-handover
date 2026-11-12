@@ -13,7 +13,7 @@ export default function Toast() {
 
   if (!message) return null
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 rounded bg-gray-800 px-4 py-2 text-white">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 rounded-lg bg-ink px-4 py-2.5 text-sm text-white shadow-lg">
       {message}
     </div>
   )
