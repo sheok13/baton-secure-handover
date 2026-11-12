@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: baton
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: docker.io/library/baton-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: baton-env
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mariadb://database:3306/baton_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "baton_app"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: baton-env
+                  key: MARIADB_PASSWORD
+            - name: AI_BASE_URL
+              value: "http://ai-module:8000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: baton
+spec:
+  selector:
+    app: backend
+  ports:
+    - port: 8080
+      targetPort: 8080
