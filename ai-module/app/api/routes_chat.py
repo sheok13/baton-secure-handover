@@ -18,7 +18,7 @@ from app.guard.injection_filter import check_question
 from app.guard.output_check import check_output
 from app.prompts.system_prompt import BLOCKED_MESSAGE, NO_ANSWER_MESSAGE
 from app.rag.chain import stream_answer
-from app.rag.retriever import format_sources, retrieve
+from app.rag.retriever import format_sources, retrieve, select_reference_document
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -44,7 +44,7 @@ async def _chat_events(req: ChatRequest) -> AsyncIterator[str]:
             for e in _fixed_answer(NO_ANSWER_MESSAGE):  # LLM 미호출
                 yield e
             return
-        docs = [doc for doc, _score in hits]
+        docs = select_reference_document(hits)
 
         # 3) 답변 스트림 + 출력 검사
         history = req.history[-get_settings().max_history_messages:]
