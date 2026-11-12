@@ -23,16 +23,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -116,7 +115,10 @@ class SecurityAuditTest {
         @DisplayName("잠긴 계정은 올바른 비밀번호를 입력해도 잠금 시간이 끝나기 전까지 로그인 차단")
         void lockedAccountRejectsEvenCorrectPassword() {
             // 이미 5회 실패로 잠긴 상태 (+10분 남음)
-            targetMember.recordLoginFailure(5, 15, LocalDateTime.now().minusMinutes(5));
+            LocalDateTime fiveMinutesAgo = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(5);
+            for (int i = 0; i < 5; i++) {
+                targetMember.recordLoginFailure(5, 15, fiveMinutesAgo);
+            }
             when(memberRepository.findByEmail(targetMember.getEmail())).thenReturn(Optional.of(targetMember));
 
             LoginRequest correctRequest = new LoginRequest(targetMember.getEmail(), "baton1234!");
@@ -197,9 +199,7 @@ class SecurityAuditTest {
         @Test
         @DisplayName("만료된 토큰(accessExpirationMs = -1)은 유효성 검증 실패(false)")
         void expiredTokenRejected() {
-            JwtProvider expiredProvider = new JwtProvider();
-            ReflectionTestUtils.setField(expiredProvider, "secretKeyString", secret);
-            ReflectionTestUtils.setField(expiredProvider, "accessExpirationMs", -1000L); // 이미 만료
+            JwtProvider expiredProvider = new JwtProvider(secret, -1000L, 604800000L);
             expiredProvider.init();
 
             String expiredToken = expiredProvider.createAccessToken(UUID.randomUUID().toString());
@@ -222,10 +222,19 @@ class SecurityAuditTest {
         @DisplayName("이미 폐기된(Revoked) Refresh Token으로 재발급 시도 시 -> 탈취로 판단하여 해당 회원의 모든 토큰 즉시 폐기")
         void reusedRevokedTokenTriggersFullRevocation() {
             Long memberId = 100L;
+            Member member = Member.builder()
+                    .id(memberId)
+                    .uuid(UUID.randomUUID().toString())
+                    .email("sales.staff@baton.local")
+                    .passwordHash("$2a$10$hashedPasswordSample...")
+                    .name("김영업")
+                    .department(Department.SALES)
+                    .jobRank(Rank.STAFF)
+                    .build();
             String rawToken = "sample-raw-refresh-token-12345";
             RefreshToken revokedToken = RefreshToken.builder()
                     .id(1L)
-                    .memberId(memberId)
+                    .member(member)
                     .tokenHash("some-sha256-hash")
                     .expiresAt(LocalDateTime.now().plusDays(7))
                     .revokedAt(LocalDateTime.now().minusHours(1)) // 1시간 전에 이미 회전되어 폐기됨
@@ -234,16 +243,18 @@ class SecurityAuditTest {
             when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(revokedToken));
 
             // 폐기된 토큰으로 재발급 요청 시 AUTH_REFRESH_INVALID 예외 발생
-            assertThatThrownBy(() -> refreshTokenService.rotate(rawToken))
+            assertThatThrownBy(() -> refreshTokenService.validateAndRotate(
+                    rawToken, "new-raw-refresh-token-67890", LocalDateTime.now().plusDays(7)))
                     .isInstanceOf(BusinessException.class)
                     .satisfies(ex -> {
                         BusinessException be = (BusinessException) ex;
                         assertThat(be.getErrorCode()).isEqualTo(AuthErrorCode.AUTH_REFRESH_INVALID);
                     });
 
-            // 🚨 핵심 방어: 해당 회원의 활성 토큰을 모두 강제 폐기(revokeAllByMemberId)했는지 검증
+            // 🚨 핵심 방어: 해당 회원의 활성 토큰을 모두 강제 폐기(revokeAllByMemberId)하고 flush했는지 검증
             verify(refreshTokenRepository, times(1)).revokeAllByMemberId(eq(memberId), any(LocalDateTime.class));
-            System.out.println("[AUDIT VERIFIED] 폐기된 Refresh Token 재사용 공격 감지 -> 전체 토큰 일괄 폐기 확인 완료");
+            verify(refreshTokenRepository, times(1)).flush();
+            System.out.println("[AUDIT VERIFIED] 폐기된 Refresh Token 재사용 공격 감지 -> 전체 토큰 일괄 폐기 및 즉시 커밋 확인 완료");
         }
     }
 }
