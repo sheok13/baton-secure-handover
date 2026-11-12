@@ -96,12 +96,13 @@ services:
       - baton-net
 
   nginx:
-    image: nginx:alpine
+    # root 없이 동작하는 공식 nginx 이미지 (uid 101) — 보안점검 I-2-04
+    image: nginxinc/nginx-unprivileged:alpine
     container_name: baton-nginx
     ports:
-      - "80:80"
+      - "80:8080"            # 외부 80 → 컨테이너 8080 (일반 사용자는 80번 직접 사용 불가)
     volumes:
-      - ./nginx/local.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/local.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - frontend
       - backend
