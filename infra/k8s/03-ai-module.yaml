@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-module
+  namespace: baton
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-module
+  template:
+    metadata:
+      labels:
+        app: ai-module
+    spec:
+      containers:
+        - name: ai-module
+          image: docker.io/library/baton-ai:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: baton-env
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: chroma-data
+              mountPath: /data/chroma
+      volumes:
+        - name: chroma-data
+          persistentVolumeClaim:
+            claimName: chroma-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-module
+  namespace: baton
+spec:
+  selector:
+    app: ai-module
+  ports:
+    - port: 8000
+      targetPort: 8000
