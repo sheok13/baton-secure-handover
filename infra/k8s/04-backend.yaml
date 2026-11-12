@@ -16,7 +16,7 @@ spec:
       containers:
         - name: backend
           image: docker.io/library/baton-backend:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           envFrom:
