@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.9'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.cyclonedx.bom' version '3.5.1'      // SBOM(CycloneDX) 생성 — 보안점검 B-13
 }
 
 group = 'com'
@@ -44,7 +45,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
     // 업로드 파일 매직넘버(MIME) 검사 (B 파트 FileValidator)
-    implementation 'org.apache.tika:tika-core:2.9.2'
+    implementation 'org.apache.tika:tika-core:3.2.2'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
