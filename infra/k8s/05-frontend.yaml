@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: docker.io/library/baton-frontend:latest
+          image: shyeok13/baton-frontend:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
