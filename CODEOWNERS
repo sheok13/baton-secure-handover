@@ -1,0 +1,10 @@
+# 파트별 디렉터리 소유권
+/backend/src/main/java/com/baton/auth/ @DaRamDev
+/backend/src/main/java/com/baton/security/ @DaRamDev
+/backend/ @jero-06
+/frontend/ @9595king
+/ai-module/app/api/ @hanna010
+/ai-module/app/ingest/ @hanna010
+/ai-module/app/rag/ @wngur123
+/infra/ @sheok13
+/.github/workflows/ @sheok13
