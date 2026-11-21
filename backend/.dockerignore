@@ -1,0 +1,15 @@
+# 비밀·환경 파일 (Git 제외 파일이 빌드 컨텍스트로 들어가 jar에 포함되는 것 방지 — 보안점검 I-1-05)
+.env
+.env.*
+**/application-secret.yml
+**/application-prod.yml
+
+# 빌드 산출물·캐시 (컨테이너 안에서 새로 빌드하므로 불필요)
+build/
+.gradle/
+
+# IDE·로그
+.idea/
+*.iml
+.vscode/
+*.log

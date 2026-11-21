@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/* 시안(Design)의 색과 글꼴 */
+@theme {
+  --color-bg: #F4F6FA;
+  --color-ink: #1A2233;
+  --color-sub: #5A6578;
+  --color-line: #DDE2EB;
+  --color-field: #C5CCDA;
+  --color-brand: #2F55D4;
+  --color-brand-dark: #1F3FA8;
+  --color-brand-soft: #E8EEFC;
+  --color-bubble: #F1F3F8;
+  --color-danger: #B3261E;
+  --font-sans: 'Noto Sans KR', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+#root {
+  min-height: 100svh;
+}

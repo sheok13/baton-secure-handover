@@ -1,0 +1,16 @@
+title = "Baton Gitleaks Security Config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow verified test dummy keys and markdown documentation examples"
+regexTarget = "match"
+regexes = [
+    '''test-internal-key-0123456789''',
+    '''GROQ_API_KEY=gsk_\.\.\.'''
+]
+paths = [
+    '''docs/.*\.md$''',
+    '''ai-module/TESTING\.md$'''
+]

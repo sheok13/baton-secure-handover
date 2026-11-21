@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  namespace: baton
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: database
+          image: docker.io/library/mariadb:11.2
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--character-set-server=utf8mb4"
+            - "--collation-server=utf8mb4_unicode_ci"
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: baton-env
+                  key: MARIADB_ROOT_PASSWORD
+            - name: MARIADB_DATABASE
+              value: "baton_db"
+            - name: MARIADB_USER
+              value: "baton_app"
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: baton-env
+                  key: MARIADB_PASSWORD
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: db-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: baton
+spec:
+  selector:
+    app: database
+  ports:
+    - port: 3306
+      targetPort: 3306
